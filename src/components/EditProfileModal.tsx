@@ -10,11 +10,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import { Controller, useForm } from 'react-hook-form';
+import {Controller, useForm} from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup';
+import {yupResolver} from '@hookform/resolvers/yup';
 
 import * as yup from 'yup';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import CustomInput from './CustomInput';
 
@@ -39,18 +41,53 @@ export default function EditProfileModal({
   user,
   onSave,
 }: any) {
-  const { control, handleSubmit } = useForm({
-    resolver: yupResolver(schema),
 
-    defaultValues: {
-      name: user.name,
-      phone: user.phone,
-      email: user.email,
-    },
-  });
+  if (!user) return null;
+
+  const {control, handleSubmit} =
+    useForm({
+      resolver: yupResolver(schema),
+
+      defaultValues: {
+        name: user?.name || '',
+        phone: user?.phone || '',
+        email: user?.email || '',
+      },
+    });
+
+  const handleSave = async (
+    data: any,
+  ) => {
+    try {
+      const updatedUser = {
+        ...user,
+        ...data,
+      };
+
+      // Save permanently
+      await AsyncStorage.setItem(
+        'USER_DATA',
+        JSON.stringify(updatedUser),
+      );
+
+      // Update redux
+      onSave(updatedUser);
+
+      onClose();
+    } catch (error) {
+      console.log(
+        'Save Profile Error:',
+        error,
+      );
+    }
+  };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide">
+
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.title}>
@@ -60,12 +97,19 @@ export default function EditProfileModal({
           <Controller
             control={control}
             name="name"
-            render={({ field: { onChange, value } }) => (
+            render={({
+              field: {
+                onChange,
+                value,
+              },
+            }) => (
               <CustomInput
                 label="Name"
                 placeholder="Enter name"
                 value={value}
-                onChangeText={onChange}
+                onChangeText={
+                  onChange
+                }
               />
             )}
           />
@@ -73,12 +117,19 @@ export default function EditProfileModal({
           <Controller
             control={control}
             name="phone"
-            render={({ field: { onChange, value } }) => (
+            render={({
+              field: {
+                onChange,
+                value,
+              },
+            }) => (
               <CustomInput
                 label="Phone"
                 placeholder="Enter phone"
                 value={value}
-                onChangeText={onChange}
+                onChangeText={
+                  onChange
+                }
               />
             )}
           />
@@ -86,29 +137,46 @@ export default function EditProfileModal({
           <Controller
             control={control}
             name="email"
-            render={({ field: { onChange, value } }) => (
+            render={({
+              field: {
+                onChange,
+                value,
+              },
+            }) => (
               <CustomInput
                 label="Email"
                 placeholder="Enter email"
                 value={value}
-                onChangeText={onChange}
+                onChangeText={
+                  onChange
+                }
               />
             )}
           />
 
           <View style={styles.buttons}>
             <TouchableOpacity
-              style={styles.cancelBtn}
+              style={
+                styles.cancelBtn
+              }
               onPress={onClose}>
-              <Text style={styles.cancelText}>
+              <Text
+                style={
+                  styles.cancelText
+                }>
                 Cancel
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.saveBtn}
-              onPress={handleSubmit(onSave)}>
-              <Text style={styles.saveText}>
+              onPress={handleSubmit(
+                handleSave,
+              )}>
+              <Text
+                style={
+                  styles.saveText
+                }>
                 Save
               </Text>
             </TouchableOpacity>
@@ -122,67 +190,53 @@ export default function EditProfileModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-
     backgroundColor: '#00000060',
-
     justifyContent: 'center',
-
     paddingHorizontal: scale(20),
   },
 
   modal: {
     backgroundColor: '#fff',
-
-    borderRadius: moderateScale(18),
-
+    borderRadius:
+      moderateScale(18),
     padding: scale(20),
   },
 
   title: {
     fontSize: fontScale(18),
-
     fontWeight: '700',
-
-    marginBottom: verticalScale(20),
+    marginBottom:
+      verticalScale(20),
   },
 
   buttons: {
     flexDirection: 'row',
-
-    justifyContent: 'space-between',
-
-    marginTop: verticalScale(10),
+    justifyContent:
+      'space-between',
+    marginTop:
+      verticalScale(10),
   },
 
   cancelBtn: {
     flex: 1,
-
     height: verticalScale(48),
-
     borderWidth: 1,
-
     borderColor: '#DDD',
-
-    borderRadius: moderateScale(12),
-
+    borderRadius:
+      moderateScale(12),
     justifyContent: 'center',
-
     alignItems: 'center',
-
     marginRight: scale(10),
   },
 
   saveBtn: {
     flex: 1,
-
     height: verticalScale(48),
-
-    backgroundColor: '#0F9D58',
-
-    borderRadius: moderateScale(12),
-
+    backgroundColor:
+      '#0F9D58',
+    borderRadius:
+      moderateScale(12),
     justifyContent: 'center',
-
     alignItems: 'center',
   },
 
@@ -192,7 +246,6 @@ const styles = StyleSheet.create({
 
   saveText: {
     color: '#fff',
-
     fontWeight: '700',
   },
 });

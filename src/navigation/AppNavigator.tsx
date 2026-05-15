@@ -53,10 +53,10 @@ const AppNavigator = () => {
                     component={EnquiryScreen}
                 />
 
-                <Stack.Screen
+                {/* <Stack.Screen
                     name="Booking"
                     component={BookingScreen}
-                />
+                /> */}
 
                 <Stack.Screen
                     name="Profile"

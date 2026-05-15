@@ -1,30 +1,31 @@
 // src/screens/ProfileScreen.tsx
 
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 import {
   View,
   Text,
   StyleSheet,
- 
+
   TouchableOpacity,
   Alert,
 } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import Feather from 'react-native-vector-icons/Feather';
 
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import {RootState} from '../redux/store';
+import { RootState } from '../redux/store';
 
 import {
   updateProfile
-  
+
 } from '../redux/slices/userSlice';
 
 import ActivityMenuItem from '../components/ActivityMenuItem';
 
 import BottomTab from '../components/BottomTab';
+import { plotsData } from '../data/plotsData';
 
 import {
   scale,
@@ -32,7 +33,7 @@ import {
   moderateScale,
   fontScale,
 } from '../utils/responsive';
-import EditProfileModal from '../components/EditProfileModel';
+import EditProfileModal from '../components/EditProfileModal';
 
 export default function ProfileScreen({
   navigation,
@@ -58,32 +59,32 @@ export default function ProfileScreen({
   };
 
   const onLogout = async () => {
-  Alert.alert(
-    'Logout',
-    'Are you sure?',
-    [
-      {
-        text: 'Cancel',
-      },
-      {
-        text: 'Logout',
-
-        onPress: async () => {
-          try {
-            // Firebase Logout
-            await auth().signOut();
-
-            // Navigate to Login
-            navigation.replace('Login');
-
-          } catch (error) {
-            console.log(error);
-          }
+    Alert.alert(
+      'Logout',
+      'Are you sure?',
+      [
+        {
+          text: 'Cancel',
         },
-      },
-    ],
-  );
-};
+        {
+          text: 'Logout',
+
+          onPress: async () => {
+            try {
+              // Firebase Logout
+              await auth().signOut();
+
+              // Navigate to Login
+              navigation.replace('Login');
+
+            } catch (error) {
+              console.log(error);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -108,21 +109,21 @@ export default function ProfileScreen({
       <View style={styles.profileCard}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {initials}
+            {initials || 'GU'}
           </Text>
         </View>
 
         <View style={styles.userInfo}>
           <Text style={styles.name}>
-            {user?.name}
+            {user?.name }
           </Text>
 
           <Text style={styles.info}>
-            {user?.phone}
+            {user?.phone }
           </Text>
 
           <Text style={styles.info}>
-            {user?.email}
+            {user?.email }
           </Text>
 
           <TouchableOpacity
@@ -150,7 +151,9 @@ export default function ProfileScreen({
           icon="file-text"
           title="My Enquiries"
           onPress={() =>
-            navigation.navigate('Enquiry')
+            navigation.navigate('Enquiry', {
+              plot: plotsData[0],
+            })
           }
         />
 
@@ -165,26 +168,26 @@ export default function ProfileScreen({
         <ActivityMenuItem
           icon="heart"
           title="Saved Plots"
-          onPress={() => {}}
+          onPress={() => { }}
         />
 
         <ActivityMenuItem
           icon="bell"
           title="Notifications"
           badge={3}
-          onPress={() => {}}
+          onPress={() => { }}
         />
 
         <ActivityMenuItem
           icon="settings"
           title="Settings"
-          onPress={() => {}}
+          onPress={() => { }}
         />
 
         <ActivityMenuItem
           icon="help-circle"
           title="Help & Support"
-          onPress={() => {}}
+          onPress={() => { }}
         />
 
         <ActivityMenuItem
