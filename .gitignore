@@ -73,3 +73,20 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+
+node_modules/
+android/app/google-services.json
+ios/GoogleService-Info.plist
+*.apk
+*.aab
+local.properties
+
+
+# Firebase
+android/app/google-services.json
+ios/GoogleService-Info.plist
+
+# APK / AAB
+*.apk
+*.aab

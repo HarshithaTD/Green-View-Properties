@@ -1,4 +1,4 @@
-package com.greenland
+package com.mrank.greenland
 
 import android.app.Application
 import com.facebook.react.PackageList

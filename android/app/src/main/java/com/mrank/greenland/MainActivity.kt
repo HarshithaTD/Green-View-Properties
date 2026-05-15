@@ -1,4 +1,4 @@
-package com.greenland
+package com.mrank.greenland
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
