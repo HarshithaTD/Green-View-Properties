@@ -10,17 +10,17 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import {useNavigation} from '@react-navigation/native';
 
-import {PlotType} from '../data/plotsData';
-
 import {
   scale,
   verticalScale,
   moderateScale,
   fontScale,
 } from '../utils/responsive';
+import {API_HOST} from '../services/apiConfig';
+import {Plot} from '../redux/slices/plotSlice';
 
 interface Props {
-  item: PlotType;
+  item: Plot;
 }
 
 export default function PlotCard({item}: Props) {
@@ -28,7 +28,18 @@ export default function PlotCard({item}: Props) {
 
   return (
     <View style={styles.card}>
-      <Image source={item.image} style={styles.image} />
+      <Image
+        source={
+          item.image
+            ? {
+                uri: item.image.startsWith('http')
+                  ? item.image
+                  : `${API_HOST}/${item.image}`,
+              }
+            : require('../assets/images/plots/plot1.png')
+        }
+        style={styles.image}
+      />
 
       <View style={styles.content}>
         {/* Top Row */}

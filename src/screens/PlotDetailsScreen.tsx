@@ -1,4 +1,4 @@
-// src/screens/PlotDetailsScreen.tsx
+// // src/screens/PlotDetailsScreen.tsx
 
 import React, {useState} from 'react';
 
@@ -6,7 +6,7 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
+  
   TouchableOpacity,
   Image,
   ScrollView,
@@ -22,6 +22,19 @@ import {
   useRoute,
 } from '@react-navigation/native';
 
+ import {
+  useDispatch,
+  useSelector,
+} from 'react-redux';
+
+import {
+  addToFavorite,
+  removeFromFavorite,
+} from '../redux/slices/favoriteSlice';
+
+import {RootState} from '../redux/store';
+
+
 import InfoCard from '../components/InfoCard';
 import AmenityCard from '../components/AmenityCard';
 import CustomButton from '../components/CustomButton';
@@ -32,6 +45,7 @@ import {
   moderateScale,
   fontScale,
 } from '../utils/responsive';
+import {API_HOST} from '../services/apiConfig';
 
 type RootStackParamList = {
   PlotDetails: {
@@ -50,10 +64,83 @@ const PlotDetailsScreen = () => {
   const route =
     useRoute<PlotDetailsRouteProp>();
 
-  const {plot} = route.params;
+    const dispatch = useDispatch();
 
-  const [favorite, setFavorite] =
-    useState(false);
+  const {plot} = route.params;
+  const plotId = plot._id || plot.id;
+
+  const imageSource = plot.image
+    ? typeof plot.image === 'string'
+      ? {
+          uri: plot.image.startsWith('http')
+            ? plot.image
+            : `${API_HOST}/${plot.image}`,
+        }
+      : plot.image
+    : require('../assets/images/plots/plot1.png');
+
+  const amenities = Array.isArray(
+    plot.amenities,
+  )
+    ? plot.amenities
+    : [
+        {
+          title: 'Park',
+          distance:
+            plot.amenities?.parkDistance ||
+            'N/A',
+          icon: 'map',
+        },
+        {
+          title: 'School',
+          distance:
+            plot.amenities?.schoolDistance ||
+            'N/A',
+          icon: 'book-open',
+        },
+        {
+          title: 'Hospital',
+          distance:
+            plot.amenities
+              ?.hospitalDistance || 'N/A',
+          icon: 'plus-square',
+        },
+        {
+          title: 'Market',
+          distance:
+            plot.amenities?.marketDistance ||
+            'N/A',
+          icon: 'shopping-cart',
+        },
+      ];
+
+  // const [favorite, setFavorite] =
+  //   useState(false);
+
+
+  const favoritePlots = useSelector(
+    (state: RootState) =>
+      state.favorites.favoritePlots,
+  );
+
+
+  const isFavorite =
+    favoritePlots.some(
+      item =>
+        (item._id || item.id) ===
+        plotId,
+    );
+
+  const toggleFavorite = () => {
+    if (isFavorite) {
+      dispatch(
+        removeFromFavorite(plotId),
+      );
+    } else {
+      dispatch(addToFavorite(plot));
+    }
+  };
+
 
   const onShare = async () => {
     try {
@@ -86,14 +173,12 @@ const PlotDetailsScreen = () => {
         <View style={styles.headerIcons}>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() =>
-              setFavorite(!favorite)
-            }>
+            onPress={toggleFavorite}>
             <Feather
               name="heart"
               size={scale(22)}
               color={
-                favorite ? 'red' : '#000'
+                isFavorite ? 'red' : '#000'
               }
               style={{
                 marginRight: scale(16),
@@ -122,13 +207,13 @@ const PlotDetailsScreen = () => {
         {/* Plot Image */}
         <View style={styles.imageContainer}>
           <Image
-            source={plot.image}
+            source={imageSource}
             style={styles.plotImage}
           />
 
           <View style={styles.imageBadge}>
             <Text style={styles.imageBadgeText}>
-              1/6
+              1/1
             </Text>
           </View>
         </View>
@@ -197,7 +282,7 @@ const PlotDetailsScreen = () => {
 
           <FlatList
             horizontal
-            data={plot.amenities}
+            data={amenities}
             keyExtractor={(
               item,
               index,
@@ -433,3 +518,10 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
   },
 });
+
+
+
+
+
+
+

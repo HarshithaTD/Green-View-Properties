@@ -22,7 +22,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 
-import firestore from '@react-native-firebase/firestore';
+
 
 import {
   scale,
@@ -32,17 +32,17 @@ import {
 } from '../utils/responsive';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import {PlotType} from '../data/plotsData';
-
+import {Plot} from '../redux/slices/plotSlice';
 import CustomInput from '../components/CustomInput';
+import apiInstance from '../services/apiInstance';
+import {API_HOST} from '../services/apiConfig';
 
 export default function EnquiryScreen() {
   const navigation = useNavigation<any>();
 
   const route = useRoute<any>();
 
-  const {plot}: {plot: PlotType} =
+  const {plot}: {plot: Plot} =
     route.params;
 
   const [name, setName] = useState('');
@@ -99,7 +99,6 @@ const handleSubmit = async () => {
     setLoading(true);
 
     const enquiryData = {
-      id: Date.now(),
       name,
       mobile,
       email,
@@ -108,53 +107,54 @@ const handleSubmit = async () => {
       plotTitle: plot.title,
       plotLocation: plot.location,
       plotPrice: plot.price,
-
-      createdAt: new Date(),
     };
 
-    // Get old data
-    const existingData =
-      await AsyncStorage.getItem(
-        'ENQUIRIES',
+const response = await apiInstance.post(
+  '/enquiries/create',
+  enquiryData,
+);
+
+    setLoading(false);
+
+    if (response.data.success) {
+      Alert.alert(
+        'Success',
+        'Enquiry Submitted',
       );
 
-    const parsedData = existingData
-      ? JSON.parse(existingData)
-      : [];
+      // RESET FORM
+      setName('');
+      setMobile('');
+      setEmail('');
 
-    // Add new enquiry
-    parsedData.push(enquiryData);
+      setMessage(
+        'I am interested in this plot. Please share more details.',
+      );
+    }
+  } catch (error: any) {
 
-    // Store updated data
-    await AsyncStorage.setItem(
-      'ENQUIRIES',
-      JSON.stringify(parsedData),
-    );
+  console.log(
+    'FULL ERROR:',
+    JSON.stringify(
+      error.response?.data,
+      null,
+      2,
+    ),
+  );
 
-    setLoading(false);
+  console.log(
+    'MESSAGE:',
+    error.message,
+  );
 
-    Alert.alert(
-      'Success',
-      'Enquiry Submitted',
-    );
+  setLoading(false);
 
-    // REMOVE OLD DATA FROM FORM
-    setName('');
-    setMobile('');
-    setEmail('');
-
-    setMessage(
-      'I am interested in this plot. Please share more details.',
-    );
-
-  } catch (error) {
-    setLoading(false);
-
-    Alert.alert(
-      'Error',
-      'Failed to submit enquiry',
-    );
-  }
+  Alert.alert(
+    'Error',
+    error.response?.data?.message ||
+      error.message,
+  );
+}
 };
 
   return (
@@ -197,7 +197,17 @@ const handleSubmit = async () => {
           {/* Plot Card */}
           <View style={styles.plotCard}>
             <Image
-              source={plot.image}
+              source={
+                plot.image
+                  ? {
+                      uri: plot.image.startsWith(
+                        'http',
+                      )
+                        ? plot.image
+                        : `${API_HOST}/${plot.image}`,
+                    }
+                  : require('../assets/images/plots/plot1.png')
+              }
               style={styles.plotImage}
             />
 

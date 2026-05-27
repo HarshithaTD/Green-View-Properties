@@ -17,21 +17,29 @@ import {
 interface Props {
   title: string;
   onPress?: () => void;
+   disabled?: boolean;
 }
 
 export default function AuthButton({
   title,
   onPress,
+   disabled = false,
 }: Props) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      style={styles.button}
-      onPress={onPress}>
-      <Text style={styles.text}>
-        {title}
-      </Text>
-    </TouchableOpacity>
+   <TouchableOpacity
+  activeOpacity={0.85}
+  style={[
+    styles.button,
+    disabled && {
+      opacity: 0.6,
+    },
+  ]}
+  onPress={onPress}
+  disabled={disabled}>
+  <Text style={styles.text}>
+    {title}
+  </Text>
+</TouchableOpacity>
   );
 }
 

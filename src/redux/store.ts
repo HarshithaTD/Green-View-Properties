@@ -2,13 +2,24 @@
 
 import {configureStore} from '@reduxjs/toolkit';
 import userReducer from './slices/userSlice';
+import favoriteReducer from './slices/favoriteSlice';
+import plotReducer from './slices/plotSlice';
+import dashboardReducer from './slices/dashboardSlice';
+import enquiryReducer from './slices/enquirySlice'
 
 export const store = configureStore({
   reducer: {
     user: userReducer,
+    favorites: favoriteReducer,
+    plots: plotReducer,
+     dashboard: dashboardReducer,
+     enquiries: enquiryReducer,
   },
 });
 
 export type RootState = ReturnType<
   typeof store.getState
 >;
+
+export type AppDispatch =
+  typeof store.dispatch;

@@ -7,6 +7,7 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  KeyboardTypeOptions,
 } from 'react-native';
 
 import Feather from 'react-native-vector-icons/Feather';
@@ -25,6 +26,9 @@ interface Props {
   icon: string;
   placeholder: string;
   secureTextEntry?: boolean;
+  isPhone?: boolean;
+  keyboardType?: KeyboardTypeOptions;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
 }
 
 export default function AuthInput({
@@ -34,10 +38,26 @@ export default function AuthInput({
   icon,
   placeholder,
   secureTextEntry,
+  isPhone,
+  keyboardType,
+  autoCapitalize = 'sentences',
+
 }: Props) {
   const [hide, setHide] = useState(
     secureTextEntry || false,
   );
+
+ const handlePhoneChange = (
+    text: string,
+  ) => {
+    // Allow only numbers and max 10 digits
+    const cleaned = text
+      .replace(/[^0-9]/g, '')
+      .slice(0, 10);
+
+    onChangeText(cleaned);
+  };
+
 
   return (
     <View style={styles.container}>
@@ -49,11 +69,20 @@ export default function AuthInput({
 
       <TextInput
         value={value}
-        onChangeText={onChangeText}
+        onChangeText={ isPhone
+            ? handlePhoneChange
+            : onChangeText}
         placeholder={placeholder}
         placeholderTextColor="#999"
         secureTextEntry={hide}
         style={styles.input}
+        keyboardType={
+          isPhone
+            ? 'phone-pad'
+            : keyboardType || 'default'
+        }
+        autoCapitalize={autoCapitalize}
+        maxLength={isPhone ? 10 : undefined}
       />
 
       {secureTextEntry && (

@@ -1,31 +1,29 @@
 // src/screens/ProfileScreen.tsx
 
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 
 import {
   View,
   Text,
   StyleSheet,
-
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import auth from '@react-native-firebase/auth';
+
 import Feather from 'react-native-vector-icons/Feather';
 
-import { useDispatch, useSelector } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import { RootState } from '../redux/store';
+import {RootState} from '../redux/store';
 
 import {
-  updateProfile
-
+  logout,
+  updateProfile,
 } from '../redux/slices/userSlice';
 
 import ActivityMenuItem from '../components/ActivityMenuItem';
 
 import BottomTab from '../components/BottomTab';
-import { plotsData } from '../data/plotsData';
 
 import {
   scale,
@@ -33,7 +31,9 @@ import {
   moderateScale,
   fontScale,
 } from '../utils/responsive';
+
 import EditProfileModal from '../components/EditProfileModal';
+import apiInstance from '../services/apiInstance';
 
 export default function ProfileScreen({
   navigation,
@@ -44,6 +44,11 @@ export default function ProfileScreen({
     (state: RootState) => state.user.user,
   );
 
+  const firstPlot = useSelector(
+    (state: RootState) =>
+      state.plots.plots[0],
+  );
+
   const [visible, setVisible] =
     useState(false);
 
@@ -52,33 +57,77 @@ export default function ProfileScreen({
     ?.map((i: string) => i[0])
     ?.join('');
 
-  const onSave = (data: any) => {
-    dispatch(updateProfile(data));
+  // =========================
+  // UPDATE PROFILE
+  // =========================
+  const onSave = async (data: any) => {
+    try {
+      const userId =
+        (user as any)?._id ||
+        (user as any)?.id;
 
-    setVisible(false);
+      const response = await apiInstance.put(
+        `/users/${userId}`,
+        data,
+      );
+
+      dispatch(
+        updateProfile(response.data.user),
+      );
+
+      setVisible(false);
+
+      Alert.alert(
+        'Success',
+        'Profile updated successfully',
+      );
+    } catch (error: any) {
+      console.log(
+        'UPDATE ERROR:',
+        error.response?.data ||
+          error.message,
+      );
+
+      Alert.alert(
+        'Error',
+        error.response?.data?.message ||
+          'Profile update failed',
+      );
+    }
   };
 
-  const onLogout = async () => {
+  // =========================
+  // LOGOUT
+  // =========================
+  const onLogout = () => {
     Alert.alert(
       'Logout',
       'Are you sure?',
       [
         {
           text: 'Cancel',
+          style: 'cancel',
         },
         {
           text: 'Logout',
 
           onPress: async () => {
             try {
-              // Firebase Logout
-              await auth().signOut();
+              dispatch(logout());
 
-              // Navigate to Login
-              navigation.replace('Login');
-
-            } catch (error) {
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {name: 'Login'},
+                ],
+              });
+            } catch (error: any) {
               console.log(error);
+
+              Alert.alert(
+                'Error',
+                error.message,
+              );
             }
           },
         },
@@ -115,19 +164,21 @@ export default function ProfileScreen({
 
         <View style={styles.userInfo}>
           <Text style={styles.name}>
-            {user?.name }
+            {user?.name}
           </Text>
 
           <Text style={styles.info}>
-            {user?.phone }
+            {user?.phone}
           </Text>
 
           <Text style={styles.info}>
-            {user?.email }
+            {user?.email}
           </Text>
 
           <TouchableOpacity
-            onPress={() => setVisible(true)}>
+            onPress={() =>
+              setVisible(true)
+            }>
             <Text style={styles.editText}>
               Edit Profile
             </Text>
@@ -150,44 +201,51 @@ export default function ProfileScreen({
         <ActivityMenuItem
           icon="file-text"
           title="My Enquiries"
-          onPress={() =>
-            navigation.navigate('Enquiry', {
-              plot: plotsData[0],
-            })
-          }
-        />
+          onPress={() => {
+            if (!firstPlot) {
+              Alert.alert(
+                'No plots available',
+                'Please wait for plots to load.',
+              );
+              return;
+            }
 
-        {/* <ActivityMenuItem
-          icon="calendar"
-          title="My Bookings"
-          onPress={() =>
-            navigation.navigate('Booking')
-          }
-        /> */}
+            navigation.navigate(
+              'Enquiry',
+              {
+                plot: firstPlot,
+              },
+            );
+          }}
+        />
 
         <ActivityMenuItem
           icon="heart"
           title="Saved Plots"
-          onPress={() => { }}
+          onPress={() =>
+            navigation.navigate(
+              'SavedPlots',
+            )
+          }
         />
 
         <ActivityMenuItem
           icon="bell"
           title="Notifications"
           badge={3}
-          onPress={() => { }}
+          onPress={() => {}}
         />
 
         <ActivityMenuItem
           icon="settings"
           title="Settings"
-          onPress={() => { }}
+          onPress={() => {}}
         />
 
         <ActivityMenuItem
           icon="help-circle"
           title="Help & Support"
-          onPress={() => { }}
+          onPress={() => {}}
         />
 
         <ActivityMenuItem
@@ -198,10 +256,12 @@ export default function ProfileScreen({
         />
       </View>
 
-      {/* Modal */}
+      {/* Edit Modal */}
       <EditProfileModal
         visible={visible}
-        onClose={() => setVisible(false)}
+        onClose={() =>
+          setVisible(false)
+        }
         user={user}
         onSave={onSave}
       />
@@ -217,121 +277,92 @@ export default function ProfileScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
     backgroundColor: '#fff',
-
     paddingHorizontal: scale(18),
   },
 
   header: {
     flexDirection: 'row',
-
-    justifyContent: 'space-between',
-
+    justifyContent:
+      'space-between',
     alignItems: 'center',
-
     marginTop: verticalScale(15),
   },
 
   headerTitle: {
     fontSize: fontScale(20),
-
     fontWeight: '700',
   },
 
   profileCard: {
     marginTop: verticalScale(25),
-
     backgroundColor: '#F9F9F9',
-
-    borderRadius: moderateScale(18),
-
+    borderRadius:
+      moderateScale(18),
     padding: scale(16),
-
     flexDirection: 'row',
-
     alignItems: 'center',
   },
 
   avatar: {
     width: scale(54),
-
     height: scale(54),
-
-    borderRadius: moderateScale(27),
-
+    borderRadius:
+      moderateScale(27),
     backgroundColor: '#7186A0',
-
     justifyContent: 'center',
-
     alignItems: 'center',
   },
 
   avatarText: {
     color: '#fff',
-
     fontWeight: '700',
-
     fontSize: fontScale(18),
   },
 
   userInfo: {
     flex: 1,
-
     marginLeft: scale(14),
   },
 
   name: {
     fontSize: fontScale(15),
-
     fontWeight: '700',
   },
 
   info: {
     marginTop: verticalScale(3),
-
     color: '#777',
-
     fontSize: fontScale(12),
   },
 
   editText: {
     marginTop: verticalScale(8),
-
     color: '#0F9D58',
-
     fontWeight: '700',
   },
 
   sectionTitle: {
     marginTop: verticalScale(28),
-
-    marginBottom: verticalScale(14),
-
+    marginBottom:
+      verticalScale(14),
     fontWeight: '700',
-
     fontSize: fontScale(16),
   },
 
   menuCard: {
     backgroundColor: '#fff',
-
-    borderRadius: moderateScale(16),
-
+    borderRadius:
+      moderateScale(16),
     paddingHorizontal: scale(14),
-
     borderWidth: 1,
-
     borderColor: '#F1F1F1',
   },
 
   bottomTab: {
     position: 'absolute',
-
     bottom: 0,
-
     left: 0,
-
     right: 0,
   },
 });

@@ -1,7 +1,7 @@
-// src/screens/RegisterScreen.tsx
 
-import React, {useState} from 'react';
+//src/screens/RegisterScreen.tsx
 
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,138 +13,131 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-
-import {useDispatch} from 'react-redux';
-
-import {updateProfile} from '../redux/slices/userSlice';
-
-import auth from '@react-native-firebase/auth';
-
-import {useNavigation} from '@react-navigation/native';
-
+import { useDispatch } from 'react-redux';
+import { updateProfile } from '../redux/slices/userSlice';
+import { useNavigation } from '@react-navigation/native';
 import {
   scale,
   verticalScale,
   moderateScale,
   fontScale,
 } from '../utils/responsive';
-
 import AuthInput from '../components/Login/AuthInput';
 import AuthButton from '../components/Login/AuthButton';
+import apiInstance from '../services/apiInstance';
 
 export default function RegisterScreen() {
   const navigation = useNavigation<any>();
-const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] =
-    useState('');
-  const [phone, setPhone] =
-    useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !phone
-    ) {
-      Alert.alert(
-        'Error',
-        'Please fill all fields',
-      );
+    if (isLoading) return;
+
+    const trimmedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const cleanPhone = phone.trim();
+    const cleanPassword = password.trim();
+
+    // Validation checks
+    if (!trimmedName || !normalizedEmail || !cleanPassword || !cleanPhone) {
+      Alert.alert('Error', 'Please fill all fields');
       return;
     }
 
-   try {
-  const userCredential =
-    await auth().createUserWithEmailAndPassword(
-      email,
-      password,
-    );
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
 
-  // Update Firebase profile
-  await userCredential.user.updateProfile({
-    displayName: name,
-  });
+    // Phone validation (10 digits)
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
+      return;
+    }
 
-  // Create user object
-  const userData = {
-    name: name,
-    email: email,
-    phone: phone,
-    image: '',
-  };
+    // Password validation
+    if (cleanPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
 
-  // Save in Redux
-  dispatch(updateProfile(userData));
+    setIsLoading(true);
 
-  console.log(
-    'Registered User Data:',
-    userData,
-  );
+    try {
+      const response = await apiInstance.post(
+         '/auth/register',
+         {
+          name: trimmedName,
+          email: normalizedEmail,
+          password: cleanPassword,
+          phone: cleanPhone,
+        },
+        {
+          timeout: 10000, // 10 second timeout
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-  Alert.alert(
-    'Success',
-    'Account created successfully',
-  );
+      const registeredUser = response.data?.user || {};
 
-  navigation.navigate('Login');
+      const userData = {
+        name: registeredUser.name || trimmedName,
+        email: registeredUser.email || normalizedEmail,
+        phone: registeredUser.phone || cleanPhone,
+        image: '',
+      };
 
-} 
-    catch (error: any) {
-      console.log(error);
+      dispatch(updateProfile(userData));
 
-      if (
-        error.code ===
-        'auth/email-already-in-use'
-      ) {
-        Alert.alert(
-          'Error',
-          'Email already exists',
-        );
-      } else if (
-        error.code ===
-        'auth/invalid-email'
-      ) {
-        Alert.alert(
-          'Error',
-          'Invalid email address',
-        );
-      } else if (
-        error.code ===
-        'auth/weak-password'
-      ) {
-        Alert.alert(
-          'Error',
-          'Password should be at least 6 characters',
-        );
-      } else {
-        Alert.alert(
-          'Error',
-          error.message,
-        );
+      Alert.alert(
+        'Success',
+        response.data?.message || 'Account created successfully',
+      );
+
+setTimeout(() => {
+  navigation.replace('Login');
+}, 500);
+
+    } catch (error: any) {
+      console.log('Registration Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.request) {
+        errorMessage = 'Cannot connect to server. Please check if backend is running.';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout. Please try again.';
       }
+
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView
-        style={{flex: 1}}
-        behavior={
-          Platform.OS === 'ios'
-            ? 'padding'
-            : undefined
-        }>
-
-        <ScrollView
-          showsVerticalScrollIndicator={
-            false
-          }>
-
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-
             {/* Logo */}
             <Image
               source={require('../assets/images/logo1.png')}
@@ -153,18 +146,14 @@ const dispatch = useDispatch();
             />
 
             {/* Heading */}
-            <Text style={styles.title}>
-              Create Account
-            </Text>
+            <Text style={styles.title}>Create Account</Text>
 
             <Text style={styles.subtitle}>
-              Join GreenView Properties
-              and find your perfect plot.
+              Join GreenView Properties and find your perfect plot.
             </Text>
 
             {/* Form */}
             <View style={styles.form}>
-
               <AuthInput
                 icon="user"
                 placeholder="Full Name"
@@ -177,6 +166,8 @@ const dispatch = useDispatch();
                 placeholder="Email Address"
                 value={email}
                 onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
               />
 
               <AuthInput
@@ -192,44 +183,28 @@ const dispatch = useDispatch();
                 placeholder="Phone Number"
                 value={phone}
                 onChangeText={setPhone}
+                isPhone={true}
               />
 
               <AuthButton
-                title="REGISTER"
+                title={isLoading ? 'REGISTERING...' : 'REGISTER'}
                 onPress={handleRegister}
+                disabled={isLoading}
               />
-
             </View>
 
             {/* Divider */}
             <View style={styles.dividerRow}>
               <View style={styles.line} />
-
-              <Text style={styles.or}>
-                OR
-              </Text>
-
+              <Text style={styles.or}>OR</Text>
               <View style={styles.line} />
             </View>
 
             {/* Login Navigation */}
             <View style={styles.bottomRow}>
-              <Text style={styles.bottomText}>
-                Already have an account?
-              </Text>
-
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate(
-                    'Login',
-                  )
-                }>
-
-                <Text
-                  style={styles.greenText}>
-                  Login
-                </Text>
-
+              <Text style={styles.bottomText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.greenText}>Login</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -239,7 +214,6 @@ const dispatch = useDispatch();
             source={require('../assets/images/login-footer.png')}
             style={styles.footerImage}
           />
-
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -251,21 +225,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-
+  
   content: {
     paddingHorizontal: scale(28),
     paddingTop: verticalScale(2),
   },
 
   logo: {
- 
     width: scale(340),
     height: verticalScale(150),
     alignSelf: 'center',
   },
 
   title: {
-   
     fontSize: fontScale(35),
     fontWeight: '800',
     color: '#222',
@@ -285,7 +257,7 @@ const styles = StyleSheet.create({
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: verticalScale(20),
+    marginTop: verticalScale(15),
   },
 
   line: {
@@ -303,8 +275,8 @@ const styles = StyleSheet.create({
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: verticalScale(2),
-    marginBottom: verticalScale(10),
+    marginTop: verticalScale(0),
+    marginBottom: verticalScale(5),
   },
 
   bottomText: {
@@ -321,8 +293,6 @@ const styles = StyleSheet.create({
 
   footerImage: {
     width: '100%',
-    height: verticalScale(160),
-   
-   
+    height: verticalScale(180),
   },
 });

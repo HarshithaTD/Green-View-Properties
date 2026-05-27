@@ -7,12 +7,14 @@ import {
     TouchableOpacity,
     Text,
     StyleSheet,
+    Alert,
 } from 'react-native';
 
-import {plotsData} from '../data/plotsData';
 import Feather from 'react-native-vector-icons/Feather';
 
 import { useNavigation } from '@react-navigation/native';
+import {useSelector} from 'react-redux';
+import {RootState} from '../redux/store';
 
 import {
     scale,
@@ -23,6 +25,24 @@ import {
 
 export default function BottomTab() {
     const navigation = useNavigation<any>();
+    const firstPlot = useSelector(
+        (state: RootState) =>
+            state.plots.plots[0],
+    );
+
+    const openEnquiry = () => {
+        if (!firstPlot) {
+            Alert.alert(
+                'No plots available',
+                'Please wait for plots to load.',
+            );
+            return;
+        }
+
+        navigation.navigate('Enquiry', {
+            plot: firstPlot,
+        });
+    };
 
     return (
         <View style={styles.container}>
@@ -37,11 +57,7 @@ export default function BottomTab() {
             <TabItem
                 icon="file-text"
                 label="Enquiries"
-                onPress={() =>
-                    navigation.navigate('Enquiry', {
-                        plot: plotsData[0],
-                    })
-                }
+                onPress={openEnquiry}
             />
 
             {/* <TabItem

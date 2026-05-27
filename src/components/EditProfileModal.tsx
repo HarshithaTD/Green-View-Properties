@@ -16,8 +16,6 @@ import {yupResolver} from '@hookform/resolvers/yup';
 
 import * as yup from 'yup';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import CustomInput from './CustomInput';
 
 import {
@@ -64,16 +62,7 @@ export default function EditProfileModal({
         ...data,
       };
 
-      // Save permanently
-      await AsyncStorage.setItem(
-        'USER_DATA',
-        JSON.stringify(updatedUser),
-      );
-
-      // Update redux
-      onSave(updatedUser);
-
-      onClose();
+      await onSave(updatedUser);
     } catch (error) {
       console.log(
         'Save Profile Error:',

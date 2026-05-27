@@ -6,6 +6,7 @@ import {
 } from '@reduxjs/toolkit';
 
 export interface User {
+   _id?: string;
   name: string;
   phone: string;
   email: string;
@@ -34,13 +35,14 @@ const userSlice = createSlice({
     },
 
     logout: state => {
-      state.user =  state.user;
+      state.user = null;
     },
   },
 });
 
 export const {
-  updateProfile
+  updateProfile,
+  logout,
 } = userSlice.actions;
 
 export default userSlice.reducer;

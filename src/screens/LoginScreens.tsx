@@ -1,5 +1,3 @@
-// src/screens/LoginScreen.tsx
-
 import React, {useState} from 'react';
 
 import {
@@ -14,31 +12,44 @@ import {
   Alert,
 } from 'react-native';
 
-import auth from '@react-native-firebase/auth';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
-
+import {useDispatch} from 'react-redux';
+import {updateProfile} from '../redux/slices/userSlice';
 import {
   scale,
   verticalScale,
-  moderateScale,
   fontScale,
 } from '../utils/responsive';
-
 import AuthInput from '../components/Login/AuthInput';
 import AuthButton from '../components/Login/AuthButton';
+import apiInstance from '../services/apiInstance';
 
-export default function LoginScreens() {
+export default function LoginScreen() {
   const navigation = useNavigation<any>();
+  const dispatch = useDispatch();
 
   const [email, setEmail] =
     useState('');
-
   const [password, setPassword] =
     useState('');
+  const [isLoading, setIsLoading] =
+    useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (isLoading) {
+      return;
+    }
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+    const cleanPassword =
+      password.trim();
+
+    if (
+      !normalizedEmail ||
+      !cleanPassword
+    ) {
       Alert.alert(
         'Error',
         'Please fill all fields',
@@ -46,110 +57,105 @@ export default function LoginScreens() {
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      const userCredential =
-        await auth().signInWithEmailAndPassword(
-          email,
-          password,
+      const response =
+        await apiInstance.post(
+          '/auth/login',
+          {
+            email: normalizedEmail,
+            password: cleanPassword,
+          },
         );
+
+      const token =
+        response.data?.token;
+
+      if (!token) {
+        Alert.alert(
+          'Login Failed',
+          response.data?.message ||
+            'Token not received',
+        );
+        return;
+      }
+
+      await AsyncStorage.setItem(
+        'token',
+        token,
+      );
+
+      const loggedInUser =
+        response.data.user || {};
+
+      const userRole =
+        loggedInUser.role || 'user';
+
+      await AsyncStorage.setItem(
+        'role',
+        userRole,
+      );
+
+      dispatch(
+        updateProfile({
+          ...(loggedInUser as any),
+          name: loggedInUser.name || '',
+          email:
+            loggedInUser.email ||
+            normalizedEmail,
+          phone:
+            loggedInUser.phone || '',
+          image:
+            loggedInUser.image || '',
+        }),
+      );
 
       Alert.alert(
         'Success',
-        'Login Successful',
+        `${userRole} Login Successful`,
       );
 
-      console.log(
-        'User:',
-        userCredential.user,
+      navigation.replace(
+        userRole === 'admin'
+          ? 'AdminDrawer'
+          : 'Dashboard',
       );
-
-      // Navigate to Dashboard
-      navigation.replace('Dashboard');
-
     } catch (error: any) {
-      console.log(error);
+      console.log(
+        'LOGIN ERROR:',
+        error?.response?.data ||
+          error,
+      );
 
-      if (
-        error.code ===
-        'auth/user-not-found'
-      ) {
-        Alert.alert(
-          'Error',
-          'User not found',
-        );
-      } else if (
-        error.code ===
-        'auth/wrong-password'
-      ) {
-        Alert.alert(
-          'Error',
-          'Wrong password',
-        );
-      } else if (
-        error.code ===
-        'auth/invalid-email'
-      ) {
-        Alert.alert(
-          'Error',
-          'Invalid email',
-        );
-      } else {
-        Alert.alert(
-          'Login Error',
-          error.message,
-        );
-      }
+      Alert.alert(
+        'Login Error',
+        error?.response?.data
+          ?.message ||
+          'Server not reachable',
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  
+  const handleForgotPassword = () => {
+    const normalizedEmail =
+      email.trim().toLowerCase();
 
-const handleForgotPassword = async () => {
-  if (!email) {
-    Alert.alert(
-      'Error',
-      'Please enter your email address',
-    );
-    return;
-  }
-
-  try {
-    await auth().sendPasswordResetEmail(
-      email,
-    );
-
-    Alert.alert(
-      'Success',
-      'Password reset email sent',
-    );
-  } catch (error: any) {
-    console.log(error);
-
-    if (
-      error.code ===
-      'auth/user-not-found'
-    ) {
+    if (!normalizedEmail) {
       Alert.alert(
         'Error',
-        'User not found',
+        'Please enter your email address',
       );
-    } else if (
-      error.code ===
-      'auth/invalid-email'
-    ) {
-      Alert.alert(
-        'Error',
-        'Invalid email address',
-      );
-    } else {
-      Alert.alert(
-        'Error',
-        error.message,
-      );
+      return;
     }
-  }
-};
 
+    Alert.alert(
+      'Password Reset',
+      'Password reset feature coming soon.',
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -160,39 +166,34 @@ const handleForgotPassword = async () => {
             ? 'padding'
             : undefined
         }>
-
         <ScrollView
           showsVerticalScrollIndicator={
             false
           }>
-
           <View style={styles.content}>
-
-            {/* Logo */}
             <Image
               source={require('../assets/images/logo1.png')}
               style={styles.logo}
               resizeMode="contain"
             />
 
-            {/* Heading */}
             <Text style={styles.title}>
               Welcome Back!
             </Text>
 
-            <Text style={styles.subtitle}>
-              Login to continue to
-              GreenView Properties
+            <Text
+              style={styles.subtitle}>
+              Login to continue to GreenView Properties
             </Text>
 
-            {/* Inputs */}
             <View style={styles.form}>
-
               <AuthInput
                 icon="mail"
                 placeholder="Email Address"
                 value={email}
                 onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
               />
 
               <AuthInput
@@ -203,25 +204,31 @@ const handleForgotPassword = async () => {
                 onChangeText={setPassword}
               />
 
-              {/* Forgot Password */}
-             <TouchableOpacity
-  onPress={handleForgotPassword}>
-  <Text
-    style={styles.forgotText}>
-    Forgot Password?
-  </Text>
-</TouchableOpacity>
+              <TouchableOpacity
+                onPress={
+                  handleForgotPassword
+                }>
+                <Text
+                  style={
+                    styles.forgotText
+                  }>
+                  Forgot Password?
+                </Text>
+              </TouchableOpacity>
 
-              {/* Login Button */}
               <AuthButton
-                title="LOGIN"
+                title={
+                  isLoading
+                    ? 'LOGGING IN...'
+                    : 'LOGIN'
+                }
                 onPress={handleLogin}
+                disabled={isLoading}
               />
-
             </View>
 
-            {/* Divider */}
-            <View style={styles.dividerRow}>
+            <View
+              style={styles.dividerRow}>
               <View style={styles.line} />
 
               <Text style={styles.or}>
@@ -231,9 +238,12 @@ const handleForgotPassword = async () => {
               <View style={styles.line} />
             </View>
 
-            {/* Register Navigation */}
-            <View style={styles.bottomRow}>
-              <Text style={styles.bottomText}>
+            <View
+              style={styles.bottomRow}>
+              <Text
+                style={
+                  styles.bottomText
+                }>
                 Don't have an account?
               </Text>
 
@@ -243,24 +253,20 @@ const handleForgotPassword = async () => {
                     'Register',
                   )
                 }>
-
                 <Text
                   style={
                     styles.greenText
                   }>
                   Register
                 </Text>
-
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Footer */}
           <Image
             source={require('../assets/images/register-footer.png')}
             style={styles.footerImage}
           />
-
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -270,41 +276,31 @@ const handleForgotPassword = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
     backgroundColor: '#fff',
   },
 
   content: {
     paddingHorizontal: scale(28),
-
-    paddingTop: verticalScale(24),
+    paddingTop: verticalScale(20),
   },
 
   logo: {
     width: scale(240),
-
     height: verticalScale(140),
-
     alignSelf: 'center',
   },
 
   title: {
-    marginTop: verticalScale(24),
-
+    marginTop: verticalScale(2),
     fontSize: fontScale(34),
-
     fontWeight: '800',
-
     color: '#222',
   },
 
   subtitle: {
     marginTop: verticalScale(10),
-
     fontSize: fontScale(17),
-
     color: '#666',
-
     lineHeight: verticalScale(28),
   },
 
@@ -314,71 +310,51 @@ const styles = StyleSheet.create({
 
   forgotText: {
     textAlign: 'right',
-
     color: '#2E7D32',
-
     fontWeight: '600',
-
     marginBottom: verticalScale(18),
-
     fontSize: fontScale(14),
   },
 
   dividerRow: {
     flexDirection: 'row',
-
     alignItems: 'center',
-
     marginTop: verticalScale(20),
   },
 
   line: {
     flex: 1,
-
     height: 1,
-
     backgroundColor: '#DDD',
   },
 
   or: {
     marginHorizontal: scale(18),
-
     color: '#777',
-
     fontSize: fontScale(15),
   },
 
   bottomRow: {
     flexDirection: 'row',
-
     justifyContent: 'center',
-
     marginTop: verticalScale(24),
-
     marginBottom: verticalScale(20),
   },
 
   bottomText: {
     color: '#666',
-
     fontSize: fontScale(15),
   },
 
   greenText: {
     color: '#2E7D32',
-
     fontWeight: '700',
-
     marginLeft: scale(6),
-
     fontSize: fontScale(15),
   },
 
   footerImage: {
     width: '100%',
-
-    height: verticalScale(200),
-
-    
+    height: verticalScale(250),
   },
 });

@@ -190,7 +190,7 @@ export const plotsData: PlotType[] = [
     status: 'Available',
     facing: 'East Facing',
     dimension: '25 x 40',
-      image: require('../assets/images/plots/plot2.png'),
+    image: require('../assets/images/plots/plot2.png'),
 
     description:
       'Affordable residential plot suitable for villa construction with all essential facilities nearby.',

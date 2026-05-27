@@ -17,18 +17,35 @@ import {
 } from '../utils/responsive';
 
 interface Props {
-  searchText: string;
+  searchText?: string;
 
-  onSearch: (text: string) => void;
+  value?: string;
+
+  onSearch?: (
+    text: string,
+  ) => void;
+
+  onChangeText?: (
+    text: string,
+  ) => void;
+
+  onFilterPress?: () => void;
+
+  placeholder?: string;
 }
 
 export default function SearchBar({
   searchText,
+  value,
   onSearch,
+  onChangeText,
+  onFilterPress,
+  placeholder =
+    'Search location, plot number...',
 }: Props) {
   return (
     <View style={styles.container}>
-      {/* Search Box */}
+      {/* SEARCH BOX */}
       <View style={styles.searchBox}>
         <Feather
           name="search"
@@ -37,18 +54,21 @@ export default function SearchBar({
         />
 
         <TextInput
-          placeholder="Search location, plot number..."
+          placeholder={placeholder}
           placeholderTextColor="#999"
           style={styles.input}
-          value={searchText}
-          onChangeText={onSearch}
+          value={searchText || value}
+          onChangeText={
+            onSearch || onChangeText
+          }
         />
       </View>
 
-      {/* Filter Button */}
+      {/* FILTER BUTTON */}
       <TouchableOpacity
         activeOpacity={0.8}
-        style={styles.filterBtn}>
+        style={styles.filterBtn}
+        onPress={onFilterPress}>
         <Feather
           name="sliders"
           size={scale(18)}
@@ -73,15 +93,17 @@ const styles = StyleSheet.create({
 
     height: verticalScale(48),
 
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#e0ebe0',
 
-    borderRadius: moderateScale(10),
+    borderRadius:
+      moderateScale(10),
 
     flexDirection: 'row',
 
     alignItems: 'center',
 
-    paddingHorizontal: scale(14),
+    paddingHorizontal:
+      scale(14),
   },
 
   input: {
@@ -103,9 +125,10 @@ const styles = StyleSheet.create({
 
     marginLeft: scale(10),
 
-    borderRadius: moderateScale(10),
+    borderRadius:
+      moderateScale(10),
 
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#e3eee5',
 
     justifyContent: 'center',
 

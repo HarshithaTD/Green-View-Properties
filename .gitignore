@@ -90,3 +90,20 @@ ios/GoogleService-Info.plist
 # APK / AAB
 *.apk
 *.aab
+
+
+# Environment variables
+.env
+
+# Uploads
+uploads/
+
+# Temp files
+tmp/
+temp/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store

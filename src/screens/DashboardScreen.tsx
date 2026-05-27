@@ -1,4 +1,7 @@
-import React, {useState} from 'react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   View,
@@ -11,69 +14,108 @@ import {
   Platform,
 } from 'react-native';
 
+import {useDispatch, useSelector} from 'react-redux';
 import SearchBar from '../components/SearchBar';
 import PlotCard from '../components/PlotCard';
 import BottomTab from '../components/BottomTab';
-import {plotsData} from '../data/plotsData';
 import Header from '../components/Header';
 import PriceFilter from '../components/PriceFilter';
+import {
+  AppDispatch,
+  RootState,
+} from '../redux/store';
+import {
+  fetchPlots,
+  Plot,
+} from '../redux/slices/plotSlice';
+import socket from '../services/socket';
+
+const parsePrice = (price: string) =>
+  Number(
+    String(price || '').replace(
+      /[^0-9]/g,
+      '',
+    ),
+  ) || 0;
 
 export default function DashboardScreen() {
-  // FILTERED DATA STATE
-  const [filteredPlots, setFilteredPlots] =
-    useState(plotsData);
+  const dispatch =
+    useDispatch<AppDispatch>();
 
-const [searchText, setSearchText] =
-  useState('');
-
-const handleSearch = (text: string) => {
-  setSearchText(text);
-
-  // If search empty
-  if (text.trim() === '') {
-    setFilteredPlots(plotsData);
-    return;
-  }
-
-  // Filter plots
-  const filtered = plotsData.filter(
-    plot => {
-      const search =
-        text.toLowerCase();
-
-      return (
-        plot.title
-          .toLowerCase()
-          .includes(search) ||
-
-        plot.location
-          .toLowerCase()
-          .includes(search) ||
-
-        plot.sector
-          .toLowerCase()
-          .includes(search) ||
-
-        plot.price
-          .toLowerCase()
-          .includes(search)
-      );
-    },
+  const {plots} = useSelector(
+    (state: RootState) => state.plots,
   );
 
-  setFilteredPlots(filtered);
-};
+  const [filteredPlots, setFilteredPlots] =
+    useState<Plot[]>([]);
 
-  // APPLY FILTER
+  const [searchText, setSearchText] =
+    useState('');
+
+  useEffect(() => {
+    dispatch(fetchPlots());
+
+    const reloadPlots = () => {
+      dispatch(fetchPlots());
+    };
+
+    socket.on('plot:created', reloadPlots);
+    socket.on('plot:updated', reloadPlots);
+    socket.on('plot:status', reloadPlots);
+    socket.on('plot:deleted', reloadPlots);
+    socket.on('plots:changed', reloadPlots);
+
+    return () => {
+      socket.off('plot:created', reloadPlots);
+      socket.off('plot:updated', reloadPlots);
+      socket.off('plot:status', reloadPlots);
+      socket.off('plot:deleted', reloadPlots);
+      socket.off('plots:changed', reloadPlots);
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    setFilteredPlots(plots);
+  }, [plots]);
+
+  const handleSearch = (text: string) => {
+    setSearchText(text);
+
+    if (text.trim() === '') {
+      setFilteredPlots(plots);
+      return;
+    }
+
+    const search =
+      text.toLowerCase();
+
+    const filtered = plots.filter(
+      plot =>
+        plot.title
+          ?.toLowerCase()
+          .includes(search) ||
+        plot.location
+          ?.toLowerCase()
+          .includes(search) ||
+        plot.sector
+          ?.toLowerCase()
+          .includes(search) ||
+        plot.price
+          ?.toLowerCase()
+          .includes(search),
+    );
+
+    setFilteredPlots(filtered);
+  };
+
   const applyPriceFilter = (
     min: number,
     max: number,
   ) => {
-    const filtered = plotsData
+    const filtered = plots
       .filter(plot => {
-        // REMOVE ₹ AND COMMAS
-        const price = Number(
-          plot.price.replace(/₹|,/g, ''),
+        const price = parsePrice(
+          plot.price,
         );
 
         return (
@@ -81,19 +123,11 @@ const handleSearch = (text: string) => {
           price <= max
         );
       })
-
-      // SORT LOW TO HIGH
-      .sort((a, b) => {
-        const priceA = Number(
-          a.price.replace(/₹|,/g, ''),
-        );
-
-        const priceB = Number(
-          b.price.replace(/₹|,/g, ''),
-        );
-
-        return priceA - priceB;
-      });
+      .sort(
+        (a, b) =>
+          parsePrice(a.price) -
+          parsePrice(b.price),
+      );
 
     setFilteredPlots(filtered);
   };
@@ -110,7 +144,9 @@ const handleSearch = (text: string) => {
       <FlatList
         showsVerticalScrollIndicator={false}
         data={filteredPlots}
-        keyExtractor={item => item.id}
+        keyExtractor={item =>
+          item._id || item.title
+        }
         contentContainerStyle={
           styles.listContainer
         }
@@ -142,10 +178,10 @@ const handleSearch = (text: string) => {
             </View>
 
             {/* Search */}
-           <SearchBar
-  searchText={searchText}
-  onSearch={handleSearch}
-/>
+            <SearchBar
+              searchText={searchText}
+              onSearch={handleSearch}
+            />
 
             {/* Price Filter */}
             <PriceFilter
