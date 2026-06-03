@@ -42,8 +42,7 @@ const CartScreen = () => {
       (
         state: RootState,
       ) =>
-        state.user.user
-          ?._id,
+        state.user.user?._id,
     );
 
   const {
@@ -51,7 +50,7 @@ const CartScreen = () => {
     isLoading,
   } =
     useGetCartQuery(
-      userId!,
+       userId ?? '',
       {
         skip:
           !userId,
@@ -87,7 +86,11 @@ const CartScreen = () => {
     }, [cartItems]);
 
   const handleClearCart =
-    async () => {
+     async () => {
+    if (!userId) {
+      return;
+    }
+
       try {
         await clearCart(
           userId,
