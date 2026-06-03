@@ -1,17 +1,17 @@
 // // src/screens/PlotDetailsScreen.tsx
 
-import React, {useState} from 'react';
+import React, {useEffect} from 'react';
 
 import {
   View,
   Text,
   StyleSheet,
-  
   TouchableOpacity,
   Image,
   ScrollView,
   FlatList,
   Share,
+  Alert,
 } from 'react-native';
 
 import Feather from 'react-native-vector-icons/Feather';
@@ -32,7 +32,15 @@ import {
   removeFromFavorite,
 } from '../redux/slices/favoriteSlice';
 
-import {RootState} from '../redux/store';
+import {
+  fetchSinglePlot,
+  Plot,
+} from '../redux/slices/plotSlice';
+
+import {
+  AppDispatch,
+  RootState,
+} from '../redux/store';
 
 
 import InfoCard from '../components/InfoCard';
@@ -46,6 +54,8 @@ import {
   fontScale,
 } from '../utils/responsive';
 import {API_HOST} from '../services/apiConfig';
+import {useAddToCartMutation} from '../services/cartApi';
+
 
 type RootStackParamList = {
   PlotDetails: {
@@ -61,54 +71,101 @@ type PlotDetailsRouteProp = RouteProp<
 const PlotDetailsScreen = () => {
   const navigation = useNavigation<any>();
 
+  const [addToCart, {isLoading: cartLoading}] =
+  useAddToCartMutation();
+
+const userId = useSelector(
+  (state: RootState) =>
+    state.user.user?._id,
+);
+
   const route =
     useRoute<PlotDetailsRouteProp>();
 
-    const dispatch = useDispatch();
+    const dispatch =
+      useDispatch<AppDispatch>();
 
   const {plot} = route.params;
   const plotId = plot._id || plot.id;
 
-  const imageSource = plot.image
-    ? typeof plot.image === 'string'
+  const {plots, singlePlot} =
+    useSelector(
+      (state: RootState) =>
+        state.plots,
+    );
+
+  const storePlot = plots.find(
+    item =>
+      (item._id || (item as any).id) ===
+      plotId,
+  );
+
+  const currentPlot: Plot | any =
+    (singlePlot &&
+      (singlePlot._id ||
+        (singlePlot as any).id) === plotId
+      ? singlePlot
+      : null) ||
+    storePlot ||
+    plot;
+
+  useEffect(() => {
+    if (plotId) {
+      dispatch(fetchSinglePlot(plotId));
+    }
+  }, [dispatch, plotId]);
+
+  const imageSource = currentPlot.image
+    ? typeof currentPlot.image === 'string'
       ? {
-          uri: plot.image.startsWith('http')
-            ? plot.image
-            : `${API_HOST}/${plot.image}`,
+          uri: currentPlot.image.startsWith('http')
+            ? currentPlot.image
+            : `${API_HOST}/${currentPlot.image}`,
         }
-      : plot.image
+      : currentPlot.image
     : require('../assets/images/plots/plot1.png');
 
   const amenities = Array.isArray(
-    plot.amenities,
+    currentPlot.amenities,
   )
-    ? plot.amenities
+    ? currentPlot.amenities.map(
+        (item: any) => ({
+          ...item,
+          distance:
+            item.distance ||
+            item.value ||
+            'N/A',
+        }),
+      )
     : [
         {
           title: 'Park',
           distance:
-            plot.amenities?.parkDistance ||
+            currentPlot.amenities
+              ?.parkDistance ||
             'N/A',
           icon: 'map',
         },
         {
           title: 'School',
           distance:
-            plot.amenities?.schoolDistance ||
+            currentPlot.amenities
+              ?.schoolDistance ||
             'N/A',
           icon: 'book-open',
         },
         {
           title: 'Hospital',
           distance:
-            plot.amenities
+            currentPlot.amenities
               ?.hospitalDistance || 'N/A',
           icon: 'plus-square',
         },
         {
           title: 'Market',
           distance:
-            plot.amenities?.marketDistance ||
+            currentPlot.amenities
+              ?.marketDistance ||
             'N/A',
           icon: 'shopping-cart',
         },
@@ -137,7 +194,7 @@ const PlotDetailsScreen = () => {
         removeFromFavorite(plotId),
       );
     } else {
-      dispatch(addToFavorite(plot));
+      dispatch(addToFavorite(currentPlot));
     }
   };
 
@@ -145,10 +202,50 @@ const PlotDetailsScreen = () => {
   const onShare = async () => {
     try {
       await Share.share({
-        message: `${plot.title} - ${plot.price}`,
+        message: `${currentPlot.title} - ${currentPlot.price}`,
       });
     } catch (error) {}
   };
+
+  const handleAddToCart = async () => {
+  try {
+    if (!userId) {
+      Alert.alert(
+        'Login Required',
+        'Please login first',
+      );
+      return;
+    }
+
+    await addToCart({
+      userId,
+      plotId: currentPlot._id,
+    }).unwrap();
+
+    Alert.alert(
+      'Success',
+      'Plot added to cart successfully',
+      [
+        {
+          text: 'Go To Cart',
+          onPress: () =>
+            navigation.navigate('Cart'),
+        },
+        {
+          text: 'Continue',
+          style: 'cancel',
+        },
+      ],
+    );
+  } catch (error: any) {
+    Alert.alert(
+      'Info',
+      error?.data?.message ||
+        'Plot already exists in cart',
+    );
+  }
+};
+
 
   return (
     <View style={styles.container}>
@@ -221,12 +318,12 @@ const PlotDetailsScreen = () => {
         {/* Title */}
         <View style={styles.titleRow}>
           <Text style={styles.plotTitle}>
-            {plot.title}
+            {currentPlot.title}
           </Text>
 
           <View style={styles.statusBadge}>
             <Text style={styles.statusText}>
-              {plot.status}
+              {currentPlot.status}
             </Text>
           </View>
         </View>
@@ -240,8 +337,8 @@ const PlotDetailsScreen = () => {
           />
 
           <Text style={styles.locationText}>
-            {plot.location},{' '}
-            {plot.sector}
+            {currentPlot.location},{' '}
+            {currentPlot.sector}
           </Text>
         </View>
 
@@ -249,17 +346,17 @@ const PlotDetailsScreen = () => {
         <View style={styles.infoRow}>
           <InfoCard
             title="Plot Area"
-            value={plot.size}
+            value={currentPlot.size}
           />
 
           <InfoCard
             title="Price"
-            value={plot.price}
+            value={currentPlot.price}
           />
 
           <InfoCard
             title="Facing"
-            value={plot.facing}
+            value={currentPlot.facing}
           />
         </View>
 
@@ -270,7 +367,7 @@ const PlotDetailsScreen = () => {
           </Text>
 
           <Text style={styles.description}>
-            {plot.description}
+            {currentPlot.description}
           </Text>
         </View>
 
@@ -298,27 +395,33 @@ const PlotDetailsScreen = () => {
       </ScrollView>
 
       {/* Bottom Buttons */}
-      <View style={styles.bottomButtons}>
-        <CustomButton
-          title="Enquire Now"
-          outlined
-          onPress={() =>
-            navigation.navigate(
-              'Enquiry',
-              {
-                plot: plot,
-              },
-            )
-          }
-        />
+     <View style={styles.bottomButtons}>
+  <View style={styles.buttonWrapper}>
+    <CustomButton
+      title="Enquire Now"
+      outlined
+      onPress={() =>
+        navigation.navigate(
+          'Enquiry',
+          {
+            plot: currentPlot,
+          },
+        )
+      }
+    />
+  </View>
 
-        {/* <CustomButton
-          title="Book Now"
-          onPress={() =>
-            navigation.navigate('Booking')
-          }
-        /> */}
-      </View>
+  <View style={styles.buttonWrapper}>
+    <CustomButton
+      title={
+        cartLoading
+          ? 'Adding...'
+          : 'Add To Cart'
+      }
+      onPress={handleAddToCart}
+    />
+  </View>
+</View>
     </View>
   );
 };
@@ -517,6 +620,10 @@ const styles = StyleSheet.create({
 
     borderColor: '#eee',
   },
+  buttonWrapper: {
+  flex: 1,
+  marginHorizontal: scale(6),
+},
 });
 
 

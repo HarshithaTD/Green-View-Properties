@@ -16,7 +16,6 @@ import {
 /* ================================
    TYPES
 ================================ */
-
 export interface Plot {
   _id?: string;
 
@@ -30,12 +29,29 @@ export interface Plot {
 
   price: string;
 
+  facing?: string;
+
+  dimension?: string;
+
+  description?: string;
+
+  amenities?: {
+    parkDistance?: string;
+    schoolDistance?: string;
+    hospitalDistance?: string;
+    marketDistance?: string;
+  };
+
   status:
     | 'Available'
     | 'Booked'
     | 'Sold';
 
   image?: string;
+
+  createdAt?: string;
+
+  updatedAt?: string;
 }
 
 interface PlotState {
@@ -77,11 +93,6 @@ export const fetchPlots =
       try {
         const response =
           await getPlotsAPI();
-
-        console.log(
-          'PLOTS RESPONSE:',
-          response,
-        );
 
         return response.plots;
       } catch (error: any) {
@@ -276,7 +287,9 @@ const plotSlice = createSlice({
       .addCase(
         fetchPlots.pending,
         state => {
-          state.loading = true;
+          if (state.plots.length === 0) {
+            state.loading = true;
+          }
 
           state.error = null;
         },

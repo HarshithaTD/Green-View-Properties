@@ -6,11 +6,13 @@ import api from '../../services/api';
 export const fetchDashboardData = createAsyncThunk(
   'dashboard/fetch',
   async () => {
-    const statsRes = await api.get('/dashboard/stats');
-
-    const enquiryRes = await api.get(
-      '/enquiries/recent',
-    );
+    const [
+      statsRes,
+      enquiryRes,
+    ] = await Promise.all([
+      api.get('/dashboard/stats'),
+      api.get('/enquiries/recent'),
+    ]);
 
     return {
       stats: statsRes.data,

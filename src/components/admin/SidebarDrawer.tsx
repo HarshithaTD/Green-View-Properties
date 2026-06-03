@@ -57,12 +57,12 @@ const menuItems: MenuItem[] = [
     screen: 'AddPlot',
   },
 
-  {
-    id: '4',
-    title: 'Bookings',
-    icon: 'calendar',
-    screen: 'Bookings',
-  },
+  // {
+  //   id: '4',
+  //   title: 'Bookings',
+  //   icon: 'calendar',
+  //   screen: 'Bookings',
+  // },
 
   {
     id: '5',

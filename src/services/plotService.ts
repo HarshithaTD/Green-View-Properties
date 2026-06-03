@@ -1,3 +1,5 @@
+//plotService
+
 import apiInstance from './apiInstance';
 
 export interface PlotPayload {
@@ -102,13 +104,19 @@ export const addPlotAPI = async (
  */
 export const updatePlotAPI = async (
   id: string,
-  data: PlotPayload,
+  data: any,
 ) => {
   try {
     const response =
       await apiInstance.put(
         `/plots/${id}`,
         data,
+        {
+          headers: {
+            'Content-Type':
+              'multipart/form-data',
+          },
+        },
       );
 
     return response.data;
@@ -118,6 +126,7 @@ export const updatePlotAPI = async (
       error?.response?.data ||
         error.message,
     );
+
     throw error;
   }
 };

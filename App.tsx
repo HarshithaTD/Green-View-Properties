@@ -8,6 +8,7 @@ import {Provider} from 'react-redux';
 
 import {store} from './src/redux/store';
 import AddNewPlotScreen from './src/screens/admin/AddNewPlotScreen';
+import CartScreen from './src/screens/CartScreen';
 
 const App = () => {
   return (

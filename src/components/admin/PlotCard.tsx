@@ -275,7 +275,7 @@ const PlotCard = ({
   );
 };
 
-export default PlotCard;
+export default React.memo(PlotCard);
 
 const CARD_RADIUS =
   moderateScale(18);

@@ -23,7 +23,7 @@ interface Props {
   item: Plot;
 }
 
-export default function PlotCard({item}: Props) {
+function PlotCard({item}: Props) {
   const navigation = useNavigation<any>();
 
   return (
@@ -110,6 +110,8 @@ export default function PlotCard({item}: Props) {
     </View>
   );
 }
+
+export default React.memo(PlotCard);
 
 const styles = StyleSheet.create({
   card: {

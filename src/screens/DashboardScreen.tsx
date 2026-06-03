@@ -1,6 +1,9 @@
 import React, {
   useEffect,
   useState,
+  useCallback,
+  useMemo,
+  useRef,
 } from 'react';
 
 import {
@@ -46,91 +49,125 @@ export default function DashboardScreen() {
     (state: RootState) => state.plots,
   );
 
-  const [filteredPlots, setFilteredPlots] =
-    useState<Plot[]>([]);
-
   const [searchText, setSearchText] =
     useState('');
+
+  const [priceRange, setPriceRange] =
+    useState<{
+      min: number;
+      max: number;
+    } | null>(null);
+
+  const reloadTimer =
+    useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
 
   useEffect(() => {
     dispatch(fetchPlots());
 
     const reloadPlots = () => {
-      dispatch(fetchPlots());
+      if (reloadTimer.current) {
+        clearTimeout(
+          reloadTimer.current,
+        );
+      }
+
+      reloadTimer.current = setTimeout(
+        () => {
+          dispatch(fetchPlots());
+        },
+        300,
+      );
     };
 
-    socket.on('plot:created', reloadPlots);
-    socket.on('plot:updated', reloadPlots);
-    socket.on('plot:status', reloadPlots);
-    socket.on('plot:deleted', reloadPlots);
     socket.on('plots:changed', reloadPlots);
 
     return () => {
-      socket.off('plot:created', reloadPlots);
-      socket.off('plot:updated', reloadPlots);
-      socket.off('plot:status', reloadPlots);
-      socket.off('plot:deleted', reloadPlots);
       socket.off('plots:changed', reloadPlots);
+
+      if (reloadTimer.current) {
+        clearTimeout(
+          reloadTimer.current,
+        );
+      }
     };
   }, [dispatch]);
 
-  useEffect(() => {
-    setFilteredPlots(plots);
-  }, [plots]);
-
-  const handleSearch = (text: string) => {
-    setSearchText(text);
-
-    if (text.trim() === '') {
-      setFilteredPlots(plots);
-      return;
-    }
-
+  const filteredPlots = useMemo(() => {
     const search =
-      text.toLowerCase();
+      searchText.trim().toLowerCase();
 
-    const filtered = plots.filter(
-      plot =>
-        plot.title
-          ?.toLowerCase()
-          .includes(search) ||
-        plot.location
-          ?.toLowerCase()
-          .includes(search) ||
-        plot.sector
-          ?.toLowerCase()
-          .includes(search) ||
-        plot.price
-          ?.toLowerCase()
-          .includes(search),
-    );
-
-    setFilteredPlots(filtered);
-  };
-
-  const applyPriceFilter = (
-    min: number,
-    max: number,
-  ) => {
-    const filtered = plots
+    const result = plots
       .filter(plot => {
+        if (!search) {
+          return true;
+        }
+
+        return (
+          plot.title
+            ?.toLowerCase()
+            .includes(search) ||
+          plot.location
+            ?.toLowerCase()
+            .includes(search) ||
+          plot.sector
+            ?.toLowerCase()
+            .includes(search) ||
+          plot.price
+            ?.toLowerCase()
+            .includes(search)
+        );
+      })
+      .filter(plot => {
+        if (!priceRange) {
+          return true;
+        }
+
         const price = parsePrice(
           plot.price,
         );
 
         return (
-          price >= min &&
-          price <= max
+          price >= priceRange.min &&
+          price <= priceRange.max
         );
-      })
-      .sort(
+      });
+
+    if (!priceRange) {
+      return result;
+    }
+
+    return [...result].sort(
         (a, b) =>
           parsePrice(a.price) -
           parsePrice(b.price),
       );
+  }, [plots, priceRange, searchText]);
 
-    setFilteredPlots(filtered);
+  const handleSearch = useCallback(
+    (text: string) => {
+      setSearchText(text);
+    },
+    [],
+  );
+
+  const applyPriceFilter = (
+    min: number,
+    max: number,
+  ) => {
+    setPriceRange({
+      min,
+      max,
+    });
   };
+
+  const renderPlot = useCallback(
+    ({item}: {item: Plot}) => (
+      <PlotCard item={item} />
+    ),
+    [],
+  );
 
   return (
     <View style={styles.container}>
@@ -147,6 +184,11 @@ export default function DashboardScreen() {
         keyExtractor={item =>
           item._id || item.title
         }
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        updateCellsBatchingPeriod={50}
+        windowSize={7}
+        removeClippedSubviews
         contentContainerStyle={
           styles.listContainer
         }
@@ -218,9 +260,7 @@ export default function DashboardScreen() {
             </View>
           </>
         }
-        renderItem={({item}) => (
-          <PlotCard item={item} />
-        )}
+        renderItem={renderPlot}
       />
 
       <BottomTab />

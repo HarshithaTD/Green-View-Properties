@@ -6,6 +6,7 @@ import favoriteReducer from './slices/favoriteSlice';
 import plotReducer from './slices/plotSlice';
 import dashboardReducer from './slices/dashboardSlice';
 import enquiryReducer from './slices/enquirySlice'
+import { apiSlice } from '../services/apiSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,7 +15,14 @@ export const store = configureStore({
     plots: plotReducer,
      dashboard: dashboardReducer,
      enquiries: enquiryReducer,
+     [apiSlice.reducerPath]: apiSlice.reducer,
+
   },
+
+    middleware: getDefaultMiddleware =>
+    getDefaultMiddleware().concat(
+      apiSlice.middleware,
+    ),
 });
 
 export type RootState = ReturnType<

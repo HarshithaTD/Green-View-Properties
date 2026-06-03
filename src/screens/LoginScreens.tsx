@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 import {
   View,
@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
-import {useDispatch} from 'react-redux';
-import {updateProfile} from '../redux/slices/userSlice';
+import { useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { updateProfile } from '../redux/slices/userSlice';
 import {
   scale,
   verticalScale,
@@ -76,7 +76,7 @@ export default function LoginScreen() {
         Alert.alert(
           'Login Failed',
           response.data?.message ||
-            'Token not received',
+          'Token not received',
         );
         return;
       }
@@ -97,19 +97,45 @@ export default function LoginScreen() {
         userRole,
       );
 
+      const userData = {
+        _id:
+          loggedInUser._id ||
+          loggedInUser.id ||
+          '',
+
+        name:
+          loggedInUser.name || '',
+
+        email:
+          loggedInUser.email ||
+          normalizedEmail,
+
+        phone:
+          loggedInUser.phone || '',
+
+        image:
+          loggedInUser.image || '',
+      };
+
       dispatch(
-        updateProfile({
-          ...(loggedInUser as any),
-          name: loggedInUser.name || '',
-          email:
-            loggedInUser.email ||
-            normalizedEmail,
-          phone:
-            loggedInUser.phone || '',
-          image:
-            loggedInUser.image || '',
-        }),
+        updateProfile(userData),
       );
+
+      await AsyncStorage.setItem(
+        'user',
+        JSON.stringify(userData),
+      );
+
+      console.log(
+        'Logged User:',
+        userData,
+      );
+
+      console.log(
+        'User ID:',
+        userData._id,
+      );
+
 
       Alert.alert(
         'Success',
@@ -125,14 +151,14 @@ export default function LoginScreen() {
       console.log(
         'LOGIN ERROR:',
         error?.response?.data ||
-          error,
+        error,
       );
 
       Alert.alert(
         'Login Error',
         error?.response?.data
           ?.message ||
-          'Server not reachable',
+        'Server not reachable',
       );
     } finally {
       setIsLoading(false);
@@ -160,7 +186,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView
-        style={{flex: 1}}
+        style={{ flex: 1 }}
         behavior={
           Platform.OS === 'ios'
             ? 'padding'

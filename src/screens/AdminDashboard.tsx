@@ -114,15 +114,6 @@ const AdminDashboardScreen: React.FC<Props> = ({
     dispatch(fetchDashboardData());
 
     socket.on(
-      'new_enquiry',
-      () => {
-        dispatch(
-          fetchDashboardData(),
-        );
-      },
-    );
-
-    socket.on(
       'dashboard:changed',
       () => {
         dispatch(
@@ -132,7 +123,6 @@ const AdminDashboardScreen: React.FC<Props> = ({
     );
 
     return () => {
-      socket.off('new_enquiry');
       socket.off('dashboard:changed');
     };
 

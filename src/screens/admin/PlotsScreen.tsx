@@ -2,6 +2,8 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useMemo,
+  useRef,
 } from 'react';
 
 import {
@@ -71,25 +73,39 @@ const {
   const [refreshing, setRefreshing] =
     useState(false);
 
+  const reloadTimer =
+    useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
+
   useEffect(() => {
     dispatch(fetchPlots());
 
     const reloadPlots = () => {
-      dispatch(fetchPlots());
+      if (reloadTimer.current) {
+        clearTimeout(
+          reloadTimer.current,
+        );
+      }
+
+      reloadTimer.current = setTimeout(
+        () => {
+          dispatch(fetchPlots());
+        },
+        300,
+      );
     };
 
-    socket.on('plot:created', reloadPlots);
-    socket.on('plot:updated', reloadPlots);
-    socket.on('plot:status', reloadPlots);
-    socket.on('plot:deleted', reloadPlots);
     socket.on('plots:changed', reloadPlots);
 
     return () => {
-      socket.off('plot:created', reloadPlots);
-      socket.off('plot:updated', reloadPlots);
-      socket.off('plot:status', reloadPlots);
-      socket.off('plot:deleted', reloadPlots);
       socket.off('plots:changed', reloadPlots);
+
+      if (reloadTimer.current) {
+        clearTimeout(
+          reloadTimer.current,
+        );
+      }
     };
   }, [dispatch]);
 
@@ -102,8 +118,13 @@ const {
       setRefreshing(false);
     }, [dispatch]);
 
-  const filteredPlots = plots.filter(
-    (plot: any) => {
+  const filteredPlots = useMemo(
+    () => {
+      const normalizedSearch =
+        search.trim().toLowerCase();
+
+      return plots.filter(
+        (plot: any) => {
       const matchStatus =
         selectedTab === 'All'
           ? true
@@ -111,15 +132,16 @@ const {
           selectedTab;
 
       const matchSearch =
+        normalizedSearch === '' ||
         plot.location
           ?.toLowerCase()
           .includes(
-            search.toLowerCase(),
+            normalizedSearch,
           ) ||
         plot.title
           ?.toLowerCase()
           .includes(
-            search.toLowerCase(),
+            normalizedSearch,
           );
 
       return (
@@ -127,6 +149,46 @@ const {
         matchSearch
       );
     },
+      );
+    },
+    [plots, search, selectedTab],
+  );
+
+  const renderPlot = useCallback(
+    ({ item }: any) => (
+      <PlotCard
+        plot={item}
+        navigation={
+          navigation
+        }
+      />
+    ),
+    [navigation],
+  );
+
+  const renderEmpty = useCallback(
+    () => (
+      <View
+        style={
+          styles.emptyContainer
+        }>
+        <Icon
+          name="cube-outline"
+          size={moderateScale(
+            70,
+          )}
+          color="#BDBDBD"
+        />
+
+        <Text
+          style={
+            styles.emptyText
+          }>
+          No Plots Found
+        </Text>
+      </View>
+    ),
+    [],
   );
 
   return (
@@ -153,11 +215,11 @@ const {
 
       {/* STATUS TABS */}
      
-<StatusTabs
+{/* <StatusTabs
   tabs={tabs}
   selectedTab={selectedTab}
   onSelect={setSelectedTab}
-/>
+/> */}
 
       {/* LIST */}
       {loading ? (
@@ -174,6 +236,11 @@ const {
           keyExtractor={(item: any) =>
             item._id
           }
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          updateCellsBatchingPeriod={50}
+          windowSize={7}
+          removeClippedSubviews
           showsVerticalScrollIndicator={
             false
           }
@@ -189,35 +256,8 @@ const {
               ]}
             />
           }
-          ListEmptyComponent={() => (
-            <View
-              style={
-                styles.emptyContainer
-              }>
-              <Icon
-                name="cube-outline"
-                size={moderateScale(
-                  70,
-                )}
-                color="#BDBDBD"
-              />
-
-              <Text
-                style={
-                  styles.emptyText
-                }>
-                No Plots Found
-              </Text>
-            </View>
-          )}
-          renderItem={({ item }) => (
-            <PlotCard
-              plot={item}
-              navigation={
-                navigation
-              }
-            />
-          )}
+          ListEmptyComponent={renderEmpty}
+          renderItem={renderPlot}
         />
       )}
 

@@ -24,6 +24,7 @@ import SavedPlotsScreen from '../screens/SavedPlotsScreen';
 import AdminDashboard from '../screens/AdminDashboard';
 import LoginScreen from '../screens/LoginScreens';
 import AddNewPlotScreen from '../screens/admin/AddNewPlotScreen';
+import CartScreen from '../screens/CartScreen';
 
 const Stack =
     createNativeStackNavigator();
@@ -103,6 +104,12 @@ const AppNavigator = () => {
                     name="SavedPlots"
                     component={SavedPlotsScreen}
                 />
+
+                <Stack.Screen
+                    name="Cart"
+                    component={CartScreen}
+                />
+
             </Stack.Navigator>
         </NavigationContainer>
     );
