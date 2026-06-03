@@ -9,13 +9,16 @@ export const cartApi =
   apiSlice.injectEndpoints({
     endpoints: builder => ({
       getCart: builder.query({
-        query: userId =>
+        query: (userId: string) =>
           `/cart/${userId}`,
 
         providesTags: ['Cart'],
       }),
 
-      addToCart: builder.mutation({
+      addToCart: builder.mutation<
+        any,
+        CartPayload
+      >({
         query: body => ({
           url: '/cart/add',
           method: 'POST',
@@ -26,7 +29,7 @@ export const cartApi =
       }),
 
       removeCart: builder.mutation({
-        query: cartId => ({
+        query: (cartId: string) => ({
           url: `/cart/remove/${cartId}`,
           method: 'DELETE',
         }),
@@ -35,7 +38,7 @@ export const cartApi =
       }),
 
       clearCart: builder.mutation({
-        query: userId => ({
+        query: (userId: string) => ({
           url: `/cart/clear/${userId}`,
           method: 'DELETE',
         }),
