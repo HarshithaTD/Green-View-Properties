@@ -1,4 +1,5 @@
 import React, {
+  useEffect,
   useMemo,
   useState,
   useCallback,
@@ -11,6 +12,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import Feather from 'react-native-vector-icons/Feather';
@@ -97,9 +99,31 @@ const CartScreen = () => {
   const cartItems =
     data?.data || [];
 
+  const showCheckboxes =
+    cartItems.length > 1;
+
+  useEffect(() => {
+    setSelectedItems(prev =>
+      prev.filter(id =>
+        cartItems.some(
+          (item: any) => item._id === id,
+        ),
+      ),
+    );
+  }, [cartItems]);
+
+  const selectedCartItems =
+    showCheckboxes
+      ? cartItems.filter((item: any) =>
+          selectedItems.includes(item._id),
+        )
+      : cartItems.length === 1
+        ? [cartItems[0]]
+        : [];
+
   const subtotal =
     useMemo(() => {
-      return cartItems.reduce(
+      return selectedCartItems.reduce(
         (
           total: number,
           item: any,
@@ -112,7 +136,36 @@ const CartScreen = () => {
           ),
         0,
       );
-    }, [cartItems]);
+    }, [selectedCartItems]);
+
+  const handleProceedToBooking = () => {
+    if (selectedCartItems.length === 0) {
+      Alert.alert(
+        'Select Plot',
+        'Please select one plot to proceed with booking.',
+      );
+      return;
+    }
+
+    if (selectedCartItems.length > 1) {
+      Alert.alert(
+        'Select One Plot',
+        'Please select only one plot for booking summary.',
+      );
+      return;
+    }
+
+    const selectedCartItem =
+      selectedCartItems[0];
+
+    navigation.navigate(
+      'BookingSummary',
+      {
+        cartId: selectedCartItem._id,
+        plot: selectedCartItem.plotId,
+      },
+    );
+  };
 
   const handleClearCart =
     async () => {
@@ -207,6 +260,7 @@ const CartScreen = () => {
             selected={selectedItems.includes(
               item._id,
             )}
+            showCheckbox={showCheckboxes}
             onSelect={toggleSelection}
             onRemove={handleRemove}
           />
@@ -241,26 +295,15 @@ const CartScreen = () => {
 
       {/* Summary */}
 
-      {cartItems.length >
-        0 && (
+      {cartItems.length > 0 && (
           <>
-            <CartSummary
-              subtotal={
-                subtotal
-              }
-            />
+            {selectedCartItems.length > 0 && (
+              <CartSummary subtotal={subtotal} />
+            )}
 
             <CustomButton
               title="Proceed To Booking"
-              onPress={() => {
-                navigation.navigate(
-                  'BookingSummary',
-                  {
-                    bookingId:
-                      selectedItems[0],
-                  },
-                );
-              }}
+              onPress={handleProceedToBooking}
             />
           </>
         )}

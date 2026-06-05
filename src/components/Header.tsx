@@ -13,7 +13,7 @@ import {useSelector} from 'react-redux';
 
 import {RootState} from '../redux/store';
 
-import {useGetCartQuery} from '../services/cartApi';
+import {useGetCartCountQuery} from '../services/cartApi';
 
 import {
   scale,
@@ -30,7 +30,7 @@ export default function Header() {
       state.user.user?._id,
   );
 
-  const {data} = useGetCartQuery(
+  const {data} = useGetCartCountQuery(
     userId!,
     {
       skip: !userId,
@@ -38,7 +38,7 @@ export default function Header() {
   );
 
   const cartCount =
-    data?.data?.length || 0;
+    data?.count || 0;
 
   return (
     <View style={styles.container}>

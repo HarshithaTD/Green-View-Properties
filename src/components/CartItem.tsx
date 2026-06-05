@@ -22,6 +22,7 @@ import {
 interface Props {
   item: any;
   selected: boolean;
+  showCheckbox: boolean;
   onSelect: (id: string) => void;
   onRemove: (id: string) => void;
 }
@@ -29,6 +30,7 @@ interface Props {
 const CartItem = ({
   item,
   selected,
+  showCheckbox,
   onSelect,
   onRemove,
 }: Props) => {
@@ -41,21 +43,22 @@ const CartItem = ({
 
   return (
     <View style={styles.card}>
-      {/* Checkbox */}
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={styles.checkbox}
-        onPress={() => onSelect(item._id)}>
-        <Feather
-          name={
-            selected
-              ? 'check-square'
-              : 'square'
-          }
-          size={scale(24)}
-          color="#16A34A"
-        />
-      </TouchableOpacity>
+      {showCheckbox && (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.checkbox}
+          onPress={() => onSelect(item._id)}>
+          <Feather
+            name={
+              selected
+                ? 'check-square'
+                : 'square'
+            }
+            size={scale(24)}
+            color="#16A34A"
+          />
+        </TouchableOpacity>
+      )}
 
       {/* Image */}
       <Image
@@ -302,7 +305,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
 
     fontSize:
-      fontScale(12),
+      fontScale(11),
   },
 
   badge: {

@@ -15,13 +15,20 @@ export interface User {
 
 interface UserState {
   user: User | null;
-  token: string | null;   // <-- Add this
+  token: string | null;
 }
 
 const initialState: UserState = {
   user: null,
-  token: null,            // <-- Add this
+  token: null,
 };
+
+type UpdateProfilePayload =
+  | User
+  | {
+      user: User;
+      token?: string;
+    };
 
 const userSlice = createSlice({
   name: 'user',
@@ -31,16 +38,20 @@ const userSlice = createSlice({
   reducers: {
     updateProfile: (
       state,
-      action: PayloadAction<{
-        user: User;
-        token: string;
-      }>,
+      action: PayloadAction<UpdateProfilePayload>,
     ) => {
-      state.user =
-        action.payload.user;
+      if ('user' in action.payload) {
+        state.user =
+          action.payload.user;
 
-      state.token =
-        action.payload.token;
+        state.token =
+          action.payload.token || null;
+
+        return;
+      }
+
+      state.user =
+        action.payload;
     },
 
     logout: state => {

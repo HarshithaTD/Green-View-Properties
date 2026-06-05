@@ -5,13 +5,11 @@ import {
   Text,
   Image,
 } from 'react-native';
-
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {BookingResponse} from '../../types/bookingTypes';
+import {API_HOST} from '../../services/apiConfig';
 import styles from '../../screens/bookingStyles';
-import { BookingResponse } from '../../types/bookingTypes';
-import { API_HOST } from '../../services/apiConfig';
-import { formatCurrency } from '../../utils/currency';
-
-
+import {formatCurrency} from '../../utils/currency';
 
 interface Props {
   plot: BookingResponse['plot'];
@@ -21,13 +19,24 @@ const PlotCard = ({
   plot,
 }: Props) => {
   const imageUri = useMemo(
-    () =>
-      plot.image.startsWith(
-        'http',
-      )
-        ? plot.image
-        : `${API_HOST}${plot.image}`,
-    [plot.image],
+    () => {
+      const image =
+        plot?.image || '';
+
+      if (
+        image.startsWith(
+          'http',
+        )
+      ) {
+        return image;
+      }
+
+      return `${API_HOST}/${image.replace(
+        /^\/+/,
+        '',
+      )}`;
+    },
+    [plot?.image],
   );
 
   return (
@@ -40,24 +49,45 @@ const PlotCard = ({
       />
 
       <View style={styles.info}>
-        <Text style={styles.title}>
+        <Text
+          numberOfLines={1}
+          style={styles.title}>
           {plot.title}
         </Text>
 
         <Text
+          numberOfLines={1}
           style={styles.subtitle}>
           {plot.location}
         </Text>
 
-        <Text style={styles.size}>
-          📏 {plot.size}
-        </Text>
+        <View style={styles.plotMetaRow}>
+          <View style={styles.plotMetaItem}>
+            <Ionicons
+              name="expand-outline"
+              size={13}
+              color="#111827"
+            />
 
-        <Text style={styles.price}>
-          {formatCurrency(
-            plot.price,
-          )}
-        </Text>
+            <Text style={styles.size}>
+              {plot.size}
+            </Text>
+          </View>
+
+          <View style={styles.plotMetaItem}>
+            <Ionicons
+              name="cash-outline"
+              size={13}
+              color="#111827"
+            />
+
+            <Text style={styles.price}>
+              {formatCurrency(
+                plot.price,
+              )}
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   );

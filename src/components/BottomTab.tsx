@@ -60,7 +60,7 @@ export default function BottomTab() {
                 onPress={openEnquiry}
             />
 
-          <TabItem
+          {/* <TabItem
     icon="calendar"
     label="Bookings"
     onPress={() => {
@@ -76,7 +76,7 @@ export default function BottomTab() {
             bookingId: firstPlot._id,
         });
     }}
-/>
+/> */}
             <TabItem
                 icon="user"
                 label="Profile"

@@ -5,51 +5,50 @@ export interface CartPayload {
   plotId: string;
 }
 
-export const cartApi =
-  apiSlice.injectEndpoints({
-    endpoints: builder => ({
-      getCart: builder.query({
-        query: (userId: string) =>
-          `/cart/$
-        {userId}`,
-
-        providesTags: ['Cart'],
-      }),
-
-     addToCart: builder.mutation({
-  query: body => {
-    console.log('ADD CART REQUEST', body);
-
-    return {
-      url: '/cart/add',
-      method: 'POST',
-      body,
-    };
-  },
-}),
-
-      removeCart: builder.mutation({
-        query: (cartId: string) => ({
-          url: `/cart/remove/${cartId}`,
-          method: 'DELETE',
-        }),
-
-        invalidatesTags: ['Cart'],
-      }),
-
-      clearCart: builder.mutation({
-        query: (userId: string) => ({
-          url: `/cart/clear/${userId}`,
-          method: 'DELETE',
-        }),
-
-        invalidatesTags: ['Cart'],
-      }),
+export const cartApi = apiSlice.injectEndpoints({
+  endpoints: builder => ({
+    getCart: builder.query({
+      query: (userId: string) => `/cart/${userId}`,
+      providesTags: ['Cart'],
     }),
-  });
+
+    getCartCount: builder.query({
+      query: (userId: string) => `/cart/count/${userId}`,
+      providesTags: ['Cart'],
+    }),
+
+    addToCart: builder.mutation({
+      query: (body: CartPayload) => ({
+        url: '/cart/add',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Cart'],
+    }),
+
+    removeCart: builder.mutation({
+      query: (cartId: string) => ({
+        url: `/cart/remove/${cartId}`,
+        method: 'DELETE',
+      }),
+
+      invalidatesTags: ['Cart'],
+    }),
+
+    clearCart: builder.mutation({
+      query: (userId: string) => ({
+        url: `/cart/clear/${userId}`,
+        method: 'DELETE',
+      }),
+
+      invalidatesTags: ['Cart'],
+    }),
+  }),
+});
 
 export const {
   useGetCartQuery,
+  useGetCartCountQuery,
   useAddToCartMutation,
   useRemoveCartMutation,
   useClearCartMutation,

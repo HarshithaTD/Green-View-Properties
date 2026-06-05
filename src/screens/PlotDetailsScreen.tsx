@@ -207,7 +207,8 @@ const userId = useSelector(
     } catch (error) {}
   };
 
-  const handleAddToCart = async () => {
+  
+const handleAddToCart = async () => {
   try {
     if (!userId) {
       Alert.alert(
@@ -219,7 +220,7 @@ const userId = useSelector(
 
     await addToCart({
       userId,
-      plotId: currentPlot._id,
+      plotId,
     }).unwrap();
 
     Alert.alert(
@@ -238,11 +239,35 @@ const userId = useSelector(
       ],
     );
   } catch (error: any) {
-    Alert.alert(
-      'Info',
+    const message =
       error?.data?.message ||
-        'Plot already exists in cart',
-    );
+      'Plot already exists in cart';
+
+    if (
+      error?.status === 409 ||
+      message
+        .toLowerCase()
+        .includes('already')
+    ) {
+      Alert.alert(
+        'Already Added',
+        'This plot is already in your cart.',
+        [
+          {
+            text: 'Go To Cart',
+            onPress: () =>
+              navigation.navigate('Cart'),
+          },
+          {
+            text: 'Continue',
+            style: 'cancel',
+          },
+        ],
+      );
+      return;
+    }
+
+    Alert.alert('Info', message);
   }
 };
 

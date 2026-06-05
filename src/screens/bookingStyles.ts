@@ -2,17 +2,22 @@ import {
   StyleSheet,
 } from 'react-native';
 
-import { fontScale, moderateScale, scale, verticalScale } from '../utils/responsive';
-
-
+import {
+  fontScale,
+  moderateScale,
+  scale,
+  verticalScale,
+} from '../utils/responsive';
 
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:
-      '#fff',
-    paddingHorizontal:
-      scale(16),
+    backgroundColor: '#fff',
+  },
+
+  scrollContent: {
+    paddingHorizontal: scale(16),
+    paddingBottom: verticalScale(18),
   },
 
   loader: {
@@ -28,36 +33,41 @@ export default StyleSheet.create({
     marginTop:
       verticalScale(18),
     marginBottom:
-      verticalScale(20),
+      verticalScale(18),
   },
 
   headerTitle: {
     flex: 1,
     textAlign: 'center',
     fontSize:
-      fontScale(18),
+      fontScale(15),
     fontWeight: '700',
-    marginRight:
-      scale(24),
+    color: '#111827',
+  },
+
+  headerSpacer: {
+    width: scale(22),
   },
 
   card: {
     flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor:
-      '#E8E8E8',
+    borderColor: '#E5E7EB',
     borderRadius:
-      moderateScale(12),
+      moderateScale(8),
     padding:
       moderateScale(10),
+    backgroundColor: '#fff',
   },
 
   image: {
-    width: scale(100),
+    width: scale(118),
     height:
-      verticalScale(70),
+      verticalScale(72),
     borderRadius:
-      moderateScale(8),
+      moderateScale(6),
+    backgroundColor: '#E5E7EB',
   },
 
   info: {
@@ -68,67 +78,137 @@ export default StyleSheet.create({
 
   title: {
     fontSize:
-      fontScale(18),
-    fontWeight: '600',
+      fontScale(14),
+    fontWeight: '700',
+    color: '#111827',
   },
 
   subtitle: {
     fontSize:
-      fontScale(14),
-    color: '#777',
-    marginTop: 2,
+      fontScale(11),
+    color: '#4B5563',
+    marginTop:
+      verticalScale(4),
+  },
+
+  plotMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    columnGap: scale(14),
+    rowGap: verticalScale(4),
+    marginTop:
+      verticalScale(9),
+  },
+
+  plotMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   size: {
-    marginTop: 5,
+    marginLeft: scale(4),
+    color: '#111827',
     fontSize:
-      fontScale(14),
+      fontScale(11),
+    fontWeight: '600',
   },
 
   price: {
-    marginTop: 4,
+    marginLeft: scale(4),
+    color: '#111827',
     fontWeight: '700',
     fontSize:
-      fontScale(17),
+      fontScale(11),
   },
 
   sectionTitle: {
     marginTop:
-      verticalScale(24),
+      verticalScale(16),
     marginBottom:
-      verticalScale(12),
+      verticalScale(8),
     fontWeight: '700',
+    color: '#111827',
     fontSize:
-      fontScale(16),
+      fontScale(15),
+  },
+
+  detailsCard: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius:
+      moderateScale(8),
+    backgroundColor: '#fff',
+    paddingHorizontal:
+      scale(12),
+    paddingTop:
+      verticalScale(10),
+    paddingBottom:
+      verticalScale(2),
   },
 
   row: {
     flexDirection: 'row',
     justifyContent:
       'space-between',
+    alignItems: 'center',
     marginBottom:
-      verticalScale(12),
+      verticalScale(10),
   },
 
   label: {
-    color: '#666',
+    flex: 1,
+    color: '#111827',
     fontSize:
-      fontScale(15),
+      fontScale(13),
+    fontWeight: '600',
   },
 
   value: {
-    color: '#222',
+    flex: 1,
+    textAlign: 'right',
+    color: '#111827',
     fontSize:
-      fontScale(15),
-    fontWeight: '500',
+      fontScale(13),
+    fontWeight: '700',
+  },
+
+  totalRow: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop:
+      verticalScale(10),
+    marginBottom:
+      verticalScale(10),
+  },
+
+  totalLabel: {
+    fontSize: fontScale(14),
+    fontWeight: '700',
   },
 
   total: {
-    color: '#1E8E3E',
-    fontWeight: '700',
-    fontSize:
-      fontScale(18),
+    color: '#138A3D',
+    fontWeight: '800',
+    fontSize: fontScale(13),
   },
 
+  payButton: {
+    height:
+      verticalScale(46),
+    borderRadius:
+      moderateScale(5),
+    backgroundColor: '#078A36',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop:
+      verticalScale(20),
+  },
 
+  payButtonText: {
+    color: '#fff',
+    fontSize:
+      fontScale(14),
+    fontWeight: '700',
+  },
 });
