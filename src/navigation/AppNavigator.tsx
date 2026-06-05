@@ -21,10 +21,11 @@ import RegisterScreen from '../screens/RegisterScreen';
 import SavedPlotsScreen from '../screens/SavedPlotsScreen';
 
 // ADMIN SCREEN
-import AdminDashboard from '../screens/AdminDashboard';
 import LoginScreen from '../screens/LoginScreens';
 import AddNewPlotScreen from '../screens/admin/AddNewPlotScreen';
 import CartScreen from '../screens/CartScreen';
+import BookingSummaryScreen from '../screens/BookingSummaryScreen';
+
 
 const Stack =
     createNativeStackNavigator();
@@ -110,6 +111,11 @@ const AppNavigator = () => {
                     component={CartScreen}
                 />
 
+                <Stack.Screen
+  name="BookingSummary"
+  component={BookingSummaryScreen}
+/>
+      
             </Stack.Navigator>
         </NavigationContainer>
     );

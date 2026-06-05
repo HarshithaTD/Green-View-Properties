@@ -1,5 +1,7 @@
 import React, {
   useMemo,
+  useState,
+  useCallback,
 } from 'react';
 
 import {
@@ -21,7 +23,7 @@ import {
   useSelector,
 } from 'react-redux';
 
-import {RootState} from '../redux/store';
+import { RootState } from '../redux/store';
 
 import CartItem from '../components/CartItem';
 
@@ -32,10 +34,14 @@ import {
   useRemoveCartMutation,
   useClearCartMutation,
 } from '../services/cartApi';
+import CustomButton from '../components/CustomButton';
 
 const CartScreen = () => {
   const navigation =
     useNavigation<any>();
+
+  const [selectedItems, setSelectedItems] =
+    useState<string[]>([]);
 
   const userId =
     useSelector(
@@ -50,12 +56,35 @@ const CartScreen = () => {
     isLoading,
   } =
     useGetCartQuery(
-       userId ?? '',
+      userId ?? '',
       {
         skip:
           !userId,
       },
     );
+
+  const toggleSelection =
+    useCallback((cartId: string) => {
+      setSelectedItems(prev =>
+        prev.includes(cartId)
+          ? prev.filter(
+            id => id !== cartId,
+          )
+          : [...prev, cartId],
+      );
+    }, []);
+
+  const handleRemove = async (
+    cartId: string,
+  ) => {
+    try {
+      await removeCart(
+        cartId,
+      ).unwrap();
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const [
     removeCart,
@@ -79,24 +108,24 @@ const CartScreen = () => {
           Number(
             item.plotId
               ?.price ||
-              0,
+            0,
           ),
         0,
       );
     }, [cartItems]);
 
   const handleClearCart =
-     async () => {
-    if (!userId) {
-      return;
-    }
+    async () => {
+      if (!userId) {
+        return;
+      }
 
       try {
         await clearCart(
           userId,
         ).unwrap();
       } catch (
-        error
+      error
       ) {
         console.log(
           error,
@@ -175,9 +204,11 @@ const CartScreen = () => {
         }) => (
           <CartItem
             item={item}
-            onRemove={
-              removeCart
-            }
+            selected={selectedItems.includes(
+              item._id,
+            )}
+            onSelect={toggleSelection}
+            onRemove={handleRemove}
           />
         )}
         showsVerticalScrollIndicator={
@@ -212,27 +243,27 @@ const CartScreen = () => {
 
       {cartItems.length >
         0 && (
-        <>
-          <CartSummary
-            subtotal={
-              subtotal
-            }
-          />
+          <>
+            <CartSummary
+              subtotal={
+                subtotal
+              }
+            />
 
-          <TouchableOpacity
-            style={
-              styles.button
-            }>
-            <Text
-              style={
-                styles.btnText
-              }>
-              Proceed To
-              Booking
-            </Text>
-          </TouchableOpacity>
-        </>
-      )}
+            <CustomButton
+              title="Proceed To Booking"
+              onPress={() => {
+                navigation.navigate(
+                  'BookingSummary',
+                  {
+                    bookingId:
+                      selectedItems[0],
+                  },
+                );
+              }}
+            />
+          </>
+        )}
     </View>
   );
 };
@@ -249,13 +280,13 @@ const styles =
     },
 
     loaderContainer:
-      {
-        flex: 1,
-        justifyContent:
-          'center',
-        alignItems:
-          'center',
-      },
+    {
+      flex: 1,
+      justifyContent:
+        'center',
+      alignItems:
+        'center',
+    },
 
     header: {
       flexDirection:
@@ -306,14 +337,14 @@ const styles =
     },
 
     emptyContainer:
-      {
-        flex: 1,
-        justifyContent:
-          'center',
-        alignItems:
-          'center',
-        marginTop: 80,
-      },
+    {
+      flex: 1,
+      justifyContent:
+        'center',
+      alignItems:
+        'center',
+      marginTop: 80,
+    },
 
     emptyText: {
       marginTop: 12,

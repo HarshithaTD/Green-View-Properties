@@ -60,14 +60,23 @@ export default function BottomTab() {
                 onPress={openEnquiry}
             />
 
-            {/* <TabItem
-                icon="calendar"
-                label="Bookings"
-                onPress={() =>
-                    navigation.navigate('Booking')
-                }
-            /> */}
+          <TabItem
+    icon="calendar"
+    label="Bookings"
+    onPress={() => {
+        if (!firstPlot) {
+            Alert.alert(
+                'No plots available',
+                'Please wait for plots to load.',
+            );
+            return;
+        }
 
+        navigation.navigate('BookingSummary', {
+            bookingId: firstPlot._id,
+        });
+    }}
+/>
             <TabItem
                 icon="user"
                 label="Profile"

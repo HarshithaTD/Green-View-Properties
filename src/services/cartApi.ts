@@ -10,23 +10,23 @@ export const cartApi =
     endpoints: builder => ({
       getCart: builder.query({
         query: (userId: string) =>
-          `/cart/${userId}`,
+          `/cart/$
+        {userId}`,
 
         providesTags: ['Cart'],
       }),
 
-      addToCart: builder.mutation<
-        any,
-        CartPayload
-      >({
-        query: body => ({
-          url: '/cart/add',
-          method: 'POST',
-          body,
-        }),
+     addToCart: builder.mutation({
+  query: body => {
+    console.log('ADD CART REQUEST', body);
 
-        invalidatesTags: ['Cart'],
-      }),
+    return {
+      url: '/cart/add',
+      method: 'POST',
+      body,
+    };
+  },
+}),
 
       removeCart: builder.mutation({
         query: (cartId: string) => ({

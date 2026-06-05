@@ -6,7 +6,7 @@ import {
 } from '@reduxjs/toolkit';
 
 export interface User {
-   _id?: string;
+  _id?: string;
   name: string;
   phone: string;
   email: string;
@@ -15,10 +15,12 @@ export interface User {
 
 interface UserState {
   user: User | null;
+  token: string | null;   // <-- Add this
 }
 
 const initialState: UserState = {
   user: null,
+  token: null,            // <-- Add this
 };
 
 const userSlice = createSlice({
@@ -29,13 +31,21 @@ const userSlice = createSlice({
   reducers: {
     updateProfile: (
       state,
-      action: PayloadAction<User>,
+      action: PayloadAction<{
+        user: User;
+        token: string;
+      }>,
     ) => {
-      state.user = action.payload;
+      state.user =
+        action.payload.user;
+
+      state.token =
+        action.payload.token;
     },
 
     logout: state => {
       state.user = null;
+      state.token = null;
     },
   },
 });

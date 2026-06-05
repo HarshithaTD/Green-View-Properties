@@ -7,6 +7,7 @@ import plotReducer from './slices/plotSlice';
 import dashboardReducer from './slices/dashboardSlice';
 import enquiryReducer from './slices/enquirySlice'
 import { apiSlice } from '../services/apiSlice';
+import { bookingApi } from '../services/bookingApi';
 
 export const store = configureStore({
   reducer: {
@@ -17,11 +18,14 @@ export const store = configureStore({
      enquiries: enquiryReducer,
      [apiSlice.reducerPath]: apiSlice.reducer,
 
+      [bookingApi.reducerPath]:
+      bookingApi.reducer,
   },
 
     middleware: getDefaultMiddleware =>
     getDefaultMiddleware().concat(
       apiSlice.middleware,
+       bookingApi.middleware,
     ),
 });
 
