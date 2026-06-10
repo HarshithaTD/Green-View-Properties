@@ -26,4 +26,4 @@ export const fontScale = (size: number) =>
   size / PixelRatio.getFontScale();
 
 export const screenWidth = width;
-export const screenHeight = height;
+export const screenHeight = height; 

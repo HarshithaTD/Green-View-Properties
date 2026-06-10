@@ -164,3 +164,26 @@ export const searchEnquiriesAPI =
       throw error;
     }
   };
+
+
+// USER ENQUIRIES
+
+export const getUserEnquiriesAPI =
+  async (userId: string) => {
+    try {
+      const response =
+        await apiInstance.get(
+          `/enquiries/user/${userId}`,
+        );
+
+      return response.data;
+    } catch (error: any) {
+      console.log(
+        'GET USER ENQUIRIES ERROR:',
+        error?.response?.data ||
+          error.message,
+      );
+
+      throw error;
+    }
+  };

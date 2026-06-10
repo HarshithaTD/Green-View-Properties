@@ -8,7 +8,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {BookingResponse} from '../../types/bookingTypes';
 import {API_HOST} from '../../services/apiConfig';
-import styles from '../../screens/bookingStyles';
+import styles from '../../styles/bookingStyles';
 import {formatCurrency} from '../../utils/currency';
 
 interface Props {

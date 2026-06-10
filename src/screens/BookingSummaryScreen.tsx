@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {skipToken} from '@reduxjs/toolkit/query';
-import styles from './bookingStyles';
+import styles from '../styles/bookingStyles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {

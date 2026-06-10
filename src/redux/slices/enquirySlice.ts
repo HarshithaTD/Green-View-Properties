@@ -43,10 +43,12 @@ export interface Enquiry {
 }
 
 interface FetchEnquiryParams {
+ 
+  userId?: string;
   search?: string;
-
   status?: string;
 }
+
 
 interface EnquiryState {
   enquiries: Enquiry[];
@@ -56,6 +58,8 @@ interface EnquiryState {
   refreshing: boolean;
 
   error: string | null;
+
+  count: number; // NEW
 }
 
 // ================= INITIAL STATE =================
@@ -68,6 +72,8 @@ const initialState: EnquiryState = {
   refreshing: false,
 
   error: null,
+
+  count: 0, // NEW
 };
 
 // ================= FETCH ENQUIRIES =================
@@ -214,6 +220,13 @@ const enquirySlice = createSlice({
       state.refreshing =
         action.payload;
     },
+
+    // NEW (optional)
+    resetEnquiries: state => {
+      state.enquiries = [];
+      state.count = 0;
+      state.error = null;
+    },
   },
 
   extraReducers: builder => {
@@ -242,6 +255,10 @@ const enquirySlice = createSlice({
 
         state.enquiries =
           action.payload;
+
+        // NEW
+        state.count =
+          action.payload.length;
       },
     );
 
@@ -277,6 +294,10 @@ const enquirySlice = createSlice({
         state.enquiries.unshift(
           action.payload,
         );
+
+        // NEW
+        state.count =
+          state.enquiries.length;
       },
     );
 
@@ -326,6 +347,10 @@ const enquirySlice = createSlice({
               enquiry._id !==
               action.payload,
           );
+
+        // NEW
+        state.count =
+          state.enquiries.length;
       },
     );
   },
@@ -336,6 +361,25 @@ const enquirySlice = createSlice({
 export const {
   clearEnquiryError,
   setRefreshing,
+  resetEnquiries,
 } = enquirySlice.actions;
+
+// ================= SELECTORS =================
+
+export const selectEnquiries = (
+  state: any,
+) => state.enquiries.enquiries;
+
+export const selectEnquiryCount = (
+  state: any,
+) => state.enquiries.count;
+
+export const selectEnquiryLoading = (
+  state: any,
+) => state.enquiries.loading;
+
+export const selectEnquiryError = (
+  state: any,
+) => state.enquiries.error;
 
 export default enquirySlice.reducer;

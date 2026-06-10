@@ -1,6 +1,6 @@
 // src/screens/ProfileScreen.tsx
 
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 import {
   View,
@@ -12,9 +12,9 @@ import {
 
 import Feather from 'react-native-vector-icons/Feather';
 
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import {RootState} from '../redux/store';
+import { RootState } from '../redux/store';
 
 import {
   logout,
@@ -85,13 +85,13 @@ export default function ProfileScreen({
       console.log(
         'UPDATE ERROR:',
         error.response?.data ||
-          error.message,
+        error.message,
       );
 
       Alert.alert(
         'Error',
         error.response?.data?.message ||
-          'Profile update failed',
+        'Profile update failed',
       );
     }
   };
@@ -118,7 +118,7 @@ export default function ProfileScreen({
               navigation.reset({
                 index: 0,
                 routes: [
-                  {name: 'Login'},
+                  { name: 'Login' },
                 ],
               });
             } catch (error: any) {
@@ -201,22 +201,11 @@ export default function ProfileScreen({
         <ActivityMenuItem
           icon="file-text"
           title="My Enquiries"
-          onPress={() => {
-            if (!firstPlot) {
-              Alert.alert(
-                'No plots available',
-                'Please wait for plots to load.',
-              );
-              return;
-            }
-
+          onPress={() =>
             navigation.navigate(
-              'Enquiry',
-              {
-                plot: firstPlot,
-              },
-            );
-          }}
+              'MyEnquiries',
+            )
+          }
         />
 
         <ActivityMenuItem
@@ -233,19 +222,21 @@ export default function ProfileScreen({
           icon="bell"
           title="Notifications"
           badge={3}
-          onPress={() => {}}
+          onPress={() => { }}
         />
 
         <ActivityMenuItem
           icon="settings"
           title="Settings"
-          onPress={() => {}}
+          onPress={() => { }}
         />
 
         <ActivityMenuItem
           icon="help-circle"
           title="Help & Support"
-          onPress={() => {}}
+          onPress={() =>
+            navigation.navigate('HelpSupport')
+          }
         />
 
         <ActivityMenuItem

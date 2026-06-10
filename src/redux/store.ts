@@ -8,6 +8,7 @@ import dashboardReducer from './slices/dashboardSlice';
 import enquiryReducer from './slices/enquirySlice'
 import { apiSlice } from '../services/apiSlice';
 import { bookingApi } from '../services/bookingApi';
+import userEnquiryReducer from './slices/userEnquirySlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     plots: plotReducer,
      dashboard: dashboardReducer,
      enquiries: enquiryReducer,
+     userEnquiries: userEnquiryReducer,
      [apiSlice.reducerPath]: apiSlice.reducer,
 
       [bookingApi.reducerPath]:

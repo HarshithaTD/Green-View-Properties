@@ -25,6 +25,8 @@ import LoginScreen from '../screens/LoginScreens';
 import AddNewPlotScreen from '../screens/admin/AddNewPlotScreen';
 import CartScreen from '../screens/CartScreen';
 import BookingSummaryScreen from '../screens/BookingSummaryScreen';
+import HelpSupportScreen from '../screens/HelpSupportScreen';
+import MyEnquiriesScreen from '../screens/MyEnquiriesScreen';
 
 
 const Stack =
@@ -107,15 +109,25 @@ const AppNavigator = () => {
                 />
 
                 <Stack.Screen
+                    name="HelpSupport"
+                    component={HelpSupportScreen}
+                />
+
+                <Stack.Screen
+  name="MyEnquiries"
+  component={MyEnquiriesScreen}
+/>
+
+                <Stack.Screen
                     name="Cart"
                     component={CartScreen}
                 />
 
                 <Stack.Screen
-  name="BookingSummary"
-  component={BookingSummaryScreen}
-/>
-      
+                    name="BookingSummary"
+                    component={BookingSummaryScreen}
+                />
+
             </Stack.Navigator>
         </NavigationContainer>
     );

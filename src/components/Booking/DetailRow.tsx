@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import styles from '../../screens/bookingStyles'
+import styles from '../../styles/bookingStyles'
 
 interface Props {
   label: string;
